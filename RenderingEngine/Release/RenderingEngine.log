@@ -1,0 +1,233 @@
+﻿  Application.cpp
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(154): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(157): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(43): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(44): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(50): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(51): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(57): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(64): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(71): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(72): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(85): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(86): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(93): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(94): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(95): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(101): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(102): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(103): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(109): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(110): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(111): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(117): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(118): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(119): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(135): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(139): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(143): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(147): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(167): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(203): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(209): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(218): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(232): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(301): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(306): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(346): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(382): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(448): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(453): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(493): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(529): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\application.cpp(571): warning C4244: аргумент: преобразование "double" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\application.cpp(572): warning C4244: аргумент: преобразование "double" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+  main.cpp
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(154): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(157): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(43): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(44): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(50): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(51): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(57): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(64): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(71): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(72): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(85): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(86): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(93): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(94): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(95): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(101): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(102): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(103): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(109): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(110): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(111): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(117): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(118): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(119): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(135): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(139): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(143): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(147): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(167): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(203): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(209): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(218): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(232): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(301): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(306): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(346): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(382): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(448): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(453): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(493): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(529): warning C4018: <: несоответствие типов со знаком и без знака
+  ComputationalDomain.cpp
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(154): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(157): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(43): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(44): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(50): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(51): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(57): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(64): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(71): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(72): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(85): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(86): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(93): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(94): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(95): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(101): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(102): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(103): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(109): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(110): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(111): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(117): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(118): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(119): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(135): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(139): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(143): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(147): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(167): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(203): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(209): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(218): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(232): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(301): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(306): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(346): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(382): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(448): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(453): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(493): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(529): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(3): warning C4305: инициализация: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(9): warning C4244: return: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(93): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(94): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(95): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(116): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(158): warning C4244: аргумент: преобразование "cd_prec" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(158): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(270): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(288): warning C4305: +=: усечение из "double" в "float"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(306): warning C4305: +=: усечение из "double" в "float"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(526): warning C4244: аргумент: преобразование "cd_prec" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(526): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(557): warning C4244: аргумент: преобразование "cd_prec" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(557): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(654): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(674): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(681): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(682): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(725): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(970): warning C4244: =: преобразование "cd_prec" в "_Ty", возможна потеря данных
+          with
+          [
+              _Ty=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(971): warning C4244: =: преобразование "double" в "T", возможна потеря данных
+          with
+          [
+              T=part_prec
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1317): warning C4244: =: преобразование "cd_prec" в "_Ty", возможна потеря данных
+          with
+          [
+              _Ty=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1318): warning C4244: =: преобразование "double" в "T", возможна потеря данных
+          with
+          [
+              T=part_prec
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1393): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1396): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1409): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1426): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1427): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1471): warning C4244: =: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1697): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1716): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1720): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1742): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1794): warning C4101: dvxdWx: неиспользованная локальная переменная
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1891): warning C4244: =: преобразование "cd_prec" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(1897): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2227): warning C4244: инициализация: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2228): warning C4244: инициализация: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2231): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2232): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2240): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2274): warning C4244: инициализация: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2275): warning C4244: инициализация: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2278): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2279): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2287): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2338): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2340): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2949): warning C4005: PPL_MAIN_PARTICLE_IS: изменение макроопределения
+  d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(255): note: см. предыдущее определение "PPL_MAIN_PARTICLE_IS"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2950): warning C4005: PPL_MAIN_PARTICLE_IS_NOT: изменение макроопределения
+  d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(256): note: см. предыдущее определение "PPL_MAIN_PARTICLE_IS_NOT"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2952): warning C4005: PPL_NEIGHBOUR_PARTICLE_IS: изменение макроопределения
+  d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(258): note: см. предыдущее определение "PPL_NEIGHBOUR_PARTICLE_IS"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2953): warning C4005: PPL_NEIGHBOUR_PARTICLE_IS_NOT: изменение макроопределения
+  d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(259): note: см. предыдущее определение "PPL_NEIGHBOUR_PARTICLE_IS_NOT"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2956): warning C4005: PPL_BOTH_PARTICLES_ARE: изменение макроопределения
+  d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(262): note: см. предыдущее определение "PPL_BOTH_PARTICLES_ARE"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(2957): warning C4005: PPL_BOTH_PARTICLES_ARE_NOT: изменение макроопределения
+  d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(263): note: см. предыдущее определение "PPL_BOTH_PARTICLES_ARE_NOT"
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(3274): warning C4244: =: преобразование "double" в "_Ty", возможна потеря данных
+          with
+          [
+              _Ty=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(3275): warning C4244: =: преобразование "double" в "_Ty", возможна потеря данных
+          with
+          [
+              _Ty=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(3411): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(3721): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(3767): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.cpp(4064): warning C4018: <: несоответствие типов со знаком и без знака
+  Создание кода
+  14 of 3964 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    3 functions had inline decision re-evaluated but remain unchanged
+  Создание кода завершено
+  RenderingEngine.vcxproj -> D:\RenderingEngine\RenderingEngine\Release\RenderingEngine.exe
