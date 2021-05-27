@@ -297,7 +297,7 @@ public:
 		//std::cout << Mpart_ptr->m_id << "   " << NBpart_ptr->m_id <<"\n";
 
 		// Doesn't affect anything yet and it's not right
-		NeighboursCountingMode NBC_mode = NeighboursCountingMode::ONLY_REAL;
+		NeighboursCountingMode NBC_mode = NeighboursCountingMode::All;
 		switch (NBC_mode){
 		case(All):
 			mpart->addNeighbour();

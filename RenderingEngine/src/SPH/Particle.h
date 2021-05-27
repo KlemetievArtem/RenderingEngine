@@ -37,6 +37,23 @@ public:
 	part_prec m_SmR;                 //part_prec
 	int nrOfNeighbours = 0;
 
+	glm::vec3 m_color{ 0.9f, 0.9f, 0.9f };
+
+	//float correctiveKernel;
+	part_prec m_mass;                //part_prec
+	Ch_<part_prec> m_density;
+	part_prec m_pressure;       //part_prec
+
+	part_prec m_SoundVelocity;
+	part_prec m_Temperature = 357.0;
+	part_prec m_DVisc;
+
+
+	part_prec gamma;
+	part_prec_3 grad_gamma;
+	
+
+	part_prec dummyParameter;
 
 	Particle(int id, PARTICLETYPE type, glm::vec3 pos, glm::vec3 vel, part_prec SmR, part_prec density, float mass)
 		: m_id(id), m_type(type), m_SmR(SmR), m_mass(mass) {
@@ -55,8 +72,7 @@ public:
 		this->m_velocity.dval = part->m_velocity.dval;
 		this->m_density.dval = part->m_density.dval;
 		this->InitPolygonNormal = part->InitPolygonNormal;
-		this->m_pressure.val = part->m_pressure.val;
-		this->m_pressure.dval = part->m_pressure.dval;
+		this->m_pressure = part->m_pressure;
 		this->m_DVisc = part->m_DVisc;
 	}
 
@@ -64,19 +80,6 @@ public:
 		//VirtualCounterpartNormals.resize(0);
 		//VirtualCounterpartFlags.resize(0);
 	}
-
-	glm::vec3 m_color{ 0.9f, 0.9f, 0.9f };
-
-	//float correctiveKernel;
-
-	glm::vec3 oldAcceleration;
-	part_prec m_mass;                //part_prec
-	Ch_<part_prec> m_density;        //part_prec
-	Ch_<part_prec> m_pressure;       //part_prec
-
-	part_prec m_SoundVelocity;
-	part_prec m_Temperature = 357.0;
-	part_prec m_DVisc;
 
 	ÑD_Boundary* particle_boundary;
 	void assignToBoundary(ÑD_Boundary* cd_boundaty) { particle_boundary = cd_boundaty; }
@@ -107,7 +110,7 @@ public:
 		int gamma = 7;
 		setSoundVel(1480.0);
 		part_prec Pressure0 = 1.0E05;
-		part_prec b = 1000;
+		part_prec b = 100;
 
 		part_prec Dens0 = 1.0;
 
@@ -115,7 +118,11 @@ public:
 		//m_pressure.val = (b*pow((m_density.val / Dens0), gamma) - 1);
 		//m_pressure.val = Pressure0 + Dens0 * pow(m_SoundVelocity, 2) / static_cast<part_prec>(gamma) * (pow(m_density.val / Dens0, gamma) - static_cast<part_prec>(1.0));
 		//m_pressure.val = pow(m_SoundVelocity, 2)  * (m_density.val - Dens0);
-		m_pressure.val = Pressure0 + b* (pow(m_density.val / Dens0, gamma) - static_cast<part_prec>(1.0));
+
+		m_pressure =  b* (pow(m_density.val / Dens0, gamma) - static_cast<part_prec>(1.0));
+
+		//m_pressure.val = b * ((m_density.val- Dens0) / Dens0);
+
 		//if(m_id == 961 - 31){
 		//	std::cout << "density = " <<m_density.val << "\n";
 		//	std::cout << "pressure = " << Dens0 << "*" << pow(m_SoundVelocity, 2) << "/" << gamma << "*(" << "(" << m_density.val <<"/"<< Dens0 << ")^" << gamma << "-" << 1.f << ")" << "=" << m_pressure.val << "\n";
@@ -123,13 +130,13 @@ public:
 	}
 	void p_gas() {
 		float gamma = 1.4f;
-		m_pressure.val = ((gamma - 1)*m_density.val*m_Temperature);
+		m_pressure = ((gamma - 1)*m_density.val*m_Temperature);
 		setSoundVel(sqrt((gamma - 1)*m_Temperature));
 
 	}
 
 	void setPressureTo(part_prec pressure) {
-		this->m_pressure.val = pressure;
+		this->m_pressure = pressure;
 	}
 
 	void addNeighbour() {

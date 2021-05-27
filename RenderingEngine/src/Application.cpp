@@ -986,7 +986,7 @@ void Application::CursorUpdate() {
 //COMPUTATIONAL DOMAIN
 void Application::CompDomainInit() {
 	SPH_OPTIONS options;
-	options.nrOfParticles[PARTICLETYPE::REAL] = 2000;
+	options.nrOfParticles[PARTICLETYPE::REAL] = 6000;
 	options.nrOfParticles[PARTICLETYPE::BOUNDARY] = 280;
 	options.nrOfParticles[PARTICLETYPE::VIRTUAL] = 0;
 	this->ComputationalDomains.push_back(new SPH_CD(options, D2));

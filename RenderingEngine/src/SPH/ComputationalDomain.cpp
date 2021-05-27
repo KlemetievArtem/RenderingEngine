@@ -2,6 +2,7 @@
 
 part_prec InitialSmR = 0.0125;
 //part_prec InitialSmR = 0.0323;
+//part_prec InitialSmR = 0.0375;
 part_prec Dens0 = 1.0;
 
 float getRandomNumber(float min, float max) {
@@ -39,42 +40,79 @@ void SPH_CD::Initilization() {
 		std::cout << "SPH_CD::Initilization\n";
 	}
 
-	m_options.ContinuityEquation = new Equation(new K1_ContinuityEquation_dval());
-	m_options.ContinuityEquation->addParticleType(REAL, ACTIVE);
-	m_options.ContinuityEquation->addParticleType(VIRTUAL, PASSIVE);
+	//  d(Vx)/dt d(Density)/dt
 
-	m_options.DensityUpdate = new TimeEquation(new DensityUpdate_DVAL());
-	m_options.DensityUpdate->addParticleType(REAL, ACTIVE);
+	// Перенести в функцию EquationsInitialization
+
+	if (m_options.boundary_handling == RENORMALIZATION) {
+
+		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, ACTIVE);
+		m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL()));
+		m_options.DensityUpdates[m_options.DensityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
 
-	m_options.VelocityEquation_PressurePart = new Equation(new K2_VelPressurePart_dval());
-	m_options.VelocityEquation_PressurePart->addParticleType(REAL, ACTIVE);
-	m_options.VelocityEquation_PressurePart->addParticleType(VIRTUAL, PASSIVE);
-	    
-	m_options.VelocityEquation_ViscosityPart = new Equation(new K2_VelViscosityPart_dval());
-	m_options.VelocityEquation_ViscosityPart->addParticleType(REAL, ACTIVE);
-	m_options.VelocityEquation_ViscosityPart->addParticleType(VIRTUAL, PASSIVE);
-
-	m_options.VelocityUpdate = new TimeEquation(new VelocityUpdate_DVAL());
-	m_options.VelocityUpdate->addParticleType(REAL, ACTIVE);
-
-	m_options.PositionUpdate = new TimeEquation(new PositionUpdate_add());
-	m_options.PositionUpdate->addParticleType(REAL, ACTIVE);
+		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, PASSIVE);
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(BOUNDARY, REACTIVE);
+		m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL()));
+		m_options.DensityUpdates[m_options.DensityUpdates.size() - 1]->addParticleType(BOUNDARY, ACTIVE);
 
 
 
-	//m_options.BoundaryDensity = new Equation(new BoundaryDensityUpdate_VAL());
-	//m_options.BoundaryDensity->addParticleType(REAL, ACTIVE);
-	//m_options.BoundaryDensity->addParticleType(BOUNDARY, REACTIVE);
-	//
-	//m_options.CorrectionEquation = new Equation(new BoundaryCorrection());
-	//m_options.CorrectionEquation->addParticleType(REAL, ACTIVE);
-	//m_options.CorrectionEquation->addParticleType(BOUNDARY, REACTIVE);
+		m_options.MomentumConservation_PressureParts.push_back(new Equation(new K2_VelPressurePart_dval()));
+		m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(REAL, ACTIVE);
+		//m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
+
+		m_options.MomentumConservation_ViscosityParts.push_back(new Equation(new K2_VelViscosityPart_dval()));
+		m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(REAL, ACTIVE);
+		//m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
+		m_options.VelocityUpdates.push_back(new TimeEquation(new VelocityUpdate_DVAL()));
+		m_options.VelocityUpdates[m_options.VelocityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
+
+		m_options.PositionUpdates.push_back(new TimeEquation(new PositionUpdate_add()));
+		m_options.PositionUpdates[m_options.PositionUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
+
+		m_options.RenormalizationEquation = new Equation(new RenormalizationFactors());
+		m_options.RenormalizationEquation->addParticleType(REAL, ACTIVE);
+
+		m_options.RenormalizationPressuerPartEquation = new Equation(new Renormalization_K1_VelPressurePart());
+		m_options.RenormalizationPressuerPartEquation->addParticleType(REAL, ACTIVE);
+	}
+	else {
+
+		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, ACTIVE);
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+		m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL()));
+		m_options.DensityUpdates[m_options.DensityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
 
-	m_options.BoundaryDensityUpdate = new TimeEquation(new DensityUpdate_VAL());
-	m_options.BoundaryDensityUpdate->addParticleType(BOUNDARY, ACTIVE);
+		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, PASSIVE);
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(BOUNDARY, REACTIVE);
+		m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL()));
+		m_options.DensityUpdates[m_options.DensityUpdates.size() - 1]->addParticleType(BOUNDARY, ACTIVE);
 
+
+
+		m_options.MomentumConservation_PressureParts.push_back(new Equation(new K2_VelPressurePart_dval()));
+		m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(REAL, ACTIVE);
+		m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+		//m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
+
+		m_options.MomentumConservation_ViscosityParts.push_back(new Equation(new K2_VelViscosityPart_dval()));
+		m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(REAL, ACTIVE);
+		m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+		//m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
+		m_options.VelocityUpdates.push_back(new TimeEquation(new VelocityUpdate_DVAL()));
+		m_options.VelocityUpdates[m_options.VelocityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
+
+		m_options.PositionUpdates.push_back(new TimeEquation(new PositionUpdate_add()));
+		m_options.PositionUpdates[m_options.PositionUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
+
+	}
 
 
 
@@ -768,10 +806,22 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 					}
 					//i->m_velocity.val += i->m_velocity.dval *static_cast<part_prec>(dt);
 					//i->m_position.val += pos_prediction;
-					m_options.PositionUpdate->Calc(i, pos_prediction);
+					//m_options.PositionUpdate->Calc(i, pos_prediction);
+					for (auto *& pu : m_options.PositionUpdates) {
+						pu->Calc(i, pos_prediction);
+					}
 				}
-				m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
-				m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt));
+				//m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
+				//m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt));
+				for (auto *& vu : m_options.VelocityUpdates) {
+					vu->Calc(i, static_cast<part_prec>(dt));
+				}
+
+				for (auto *& du : m_options.DensityUpdates) {
+					du->Calc(i, static_cast<part_prec>(dt));
+				}
+				
+
 				if (i->m_type == PARTICLETYPE::REAL) {
 					//switch (m_options.densityChangeUsing) {
 					//case(VAL):
@@ -803,7 +853,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 				ExternalForces();
 				deletingParticlePairs();
 				for (auto*& i : SPH.Particles) {
-					m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
+					for (auto *& vu : m_options.VelocityUpdates) {
+						vu->Calc(i, static_cast<part_prec>(dt));
+					}
+					//m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
 					if (i->m_type == PARTICLETYPE::REAL) {
 						//i->m_velocity.val += i->m_velocity.dval *static_cast<part_prec>(dt);
 						//TELEPORTING
@@ -814,7 +867,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 								pos_prediction += BM.TeleportationLinks[i->m_id].teleportingDistance();
 						}
 						//i->m_position.val += pos_prediction;
-						m_options.PositionUpdate->Calc(i, pos_prediction);
+						//m_options.PositionUpdate->Calc(i, pos_prediction);
+						for (auto *& pu : m_options.PositionUpdates) {
+							pu->Calc(i, pos_prediction);
+						}
 						i->m_velocity.dval = part_prec_3(0.f);
 					}
 				}
@@ -825,7 +881,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 				deletingParticlePairs();
 				for (auto*& i : SPH.Particles) {
 
-					m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt));
+					//m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt));
+					for (auto *& de : m_options.DensityUpdates) {
+						de->Calc(i, static_cast<part_prec>(dt));
+					}
 					if (i->m_type == PARTICLETYPE::REAL) {
 						//switch (m_options.densityChangeUsing) {
 						//case(VAL):
@@ -858,7 +917,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 			ExternalForces();
 			deletingParticlePairs();
 			for (auto*& i : SPH.Particles) {
-				m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
+				for (auto *& vu : m_options.VelocityUpdates) {
+					vu->Calc(i, static_cast<part_prec>(dt));
+				}
+				//m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
 				if (i->m_type == PARTICLETYPE::REAL) {
 					//i->m_velocity.val += i->m_velocity.dval*static_cast<part_prec>(dt);
 					//TELEPORTING
@@ -869,7 +931,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 							pos_prediction += BM.TeleportationLinks[i->m_id].teleportingDistance();
 					}
 					//i->m_position.val += pos_prediction;
-					m_options.PositionUpdate->Calc(i, pos_prediction);
+					//m_options.PositionUpdate->Calc(i, pos_prediction);
+					for (auto *& pu : m_options.PositionUpdates) {
+						pu->Calc(i, pos_prediction);
+					}
 				}
 			}
 			DeletingVirtualParticles();
@@ -878,7 +943,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 			DensityRecalculation();
 			deletingParticlePairs();
 			for (auto*& i : SPH.Particles) {
-				m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt));
+				//m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt));
+				for (auto *& de : m_options.DensityUpdates) {
+					de->Calc(i, static_cast<part_prec>(dt));
+				}
 				if (i->m_type == PARTICLETYPE::REAL) {
 					//switch (m_options.densityChangeUsing) {
 					//case(VAL):
@@ -924,7 +992,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 							pos_prediction += BM.TeleportationLinks[i->m_id].teleportingDistance();
 					}
 					//i->m_position.val += pos_prediction;
-					m_options.PositionUpdate->Calc(i, pos_prediction);
+					//m_options.PositionUpdate->Calc(i, pos_prediction);
+					for (auto *& pu : m_options.PositionUpdates) {
+						pu->Calc(i, pos_prediction);
+					}
 				}
 			}
 			BM.resetTeleportationData();
@@ -937,7 +1008,10 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 			ExternalForces();
 			deletingParticlePairs();
 			for (auto*& i : SPH.Particles) {
-				m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
+				for (auto *& vu : m_options.VelocityUpdates) {
+					vu->Calc(i, static_cast<part_prec>(dt));
+				}
+				//m_options.VelocityUpdate->Calc(i, static_cast<part_prec>(dt));
 				if (i->m_type == PARTICLETYPE::REAL) {
 					//i->m_velocity.val += i->m_velocity.dval *static_cast<part_prec>(dt);
 					//TELEPORTING
@@ -948,19 +1022,24 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 							pos_prediction += BM.TeleportationLinks[i->m_id].teleportingDistance();
 					}
 					//i->m_position.val += pos_prediction;
-					m_options.PositionUpdate->Calc(i, pos_prediction);
+					//m_options.PositionUpdate->Calc(i, pos_prediction);
+					for (auto *& pu : m_options.PositionUpdates) {
+						pu->Calc(i, pos_prediction);
+					}
 
 					old_rho[i->m_id] = i->m_density.val;
 
 					//i->m_density.val += i->m_density.dval * dt / 2.0;
 
 				}
-				m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt / 2.0));
+				//m_options.DensityUpdate->Calc(i, static_cast<part_prec>(dt / 2.0));
+				for (auto *& de : m_options.DensityUpdates) {
+					de->Calc(i, static_cast<part_prec>(dt / 2.0));
+				}
 			}
 			DeletingVirtualParticles();
 			RecalcPrep();
 			DensityRecalculation();
-			//BoundaryCalculation();
 
 			std::vector<part_prec> Eps_rho;
 			Eps_rho.resize(SPH.Particles.size(), 0.f);
@@ -971,7 +1050,6 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 					i->m_density.val = old_rho[i->m_id] * (2.0 - Eps_rho[i->m_id]) / (2.0 + Eps_rho[i->m_id]);
 					i->p_art_water();
 				}
-				//m_options.BoundaryDensityUpdate->Calc(i, dt);
 			}
 
 		}
@@ -1324,12 +1402,12 @@ void SPH_CD::creatingVirtualParticles() {
 				BM.TeleportationLinks.insert({ real_p->m_id,TeleportationData(distance, normal, distanceToPeriodic_part) });
 				virtualVelocity = SPH.Particles[real_p->m_id]->m_velocity.val;
 				virtualPosition = (projected_real + distanceToPeriodic_part + normal * distance);
-				virtualPressure = real_p->m_pressure.val;
+				virtualPressure = real_p->m_pressure;
 			}
 			else {
 				virtualVelocity = static_cast<part_prec>(2.0) * SPH.Particles[neighbour_p->m_id]->m_velocity.val - SPH.Particles[real_p->m_id]->m_velocity.val;
 				virtualPosition = (projected_real - normal * distance);
-				virtualPressure = real_p->m_pressure.val;
+				virtualPressure = real_p->m_pressure;
 			}
 
 			if(virtualPosition != pos_real){
@@ -1655,23 +1733,24 @@ void SPH_CD::Boundary_Handling() {
 
 SPH_CD::~SPH_CD() {
 
-	for (auto*& i : SPH.Particles) {
-		delete i;
-	}
-	for (auto*& i : SPH.ParticlePairs) {
-		delete i;
-	}
+	for (auto*& i : SPH.Particles) { delete i; }
+	for (auto*& i : SPH.ParticlePairs) { delete i; }
 	delete UG;
 
-	delete m_options.ContinuityEquation;
-	delete m_options.VelocityEquation_PressurePart;
-	delete m_options.VelocityEquation_ViscosityPart;
+	for (auto *& ce : m_options.ContinuityEquations) { delete ce; }
+	for (auto *& du : m_options.DensityUpdates) { delete du; }
+	for (auto *& mc_pp : m_options.MomentumConservation_PressureParts) { delete mc_pp; }
+	for (auto *& mc_vp : m_options.MomentumConservation_ViscosityParts) { delete mc_vp; }
 
-	delete m_options.DensityUpdate;
-	delete m_options.VelocityUpdate;
-	delete m_options.PositionUpdate;
+	
+
+	for (auto *& vu : m_options.VelocityUpdates) { delete vu; }
+	for (auto *& pu : m_options.PositionUpdates) { delete pu; }
 
 
+	delete m_options.RenormalizationEquation;
+	delete m_options.RenormalizationPressuerPartEquation;
+	
 	
 		
 		
@@ -1934,12 +2013,12 @@ void SPH_CD::Coloring() {
 	else if (ColoringParameter == "pressure") {
 		ColoringUnknow = false;
 		changeColorParamTo("pressure");
-		float maxVal = SPH.Particles[0]->m_pressure.val;
-		float minVal = SPH.Particles[0]->m_pressure.val;
+		float maxVal = SPH.Particles[0]->m_pressure;
+		float minVal = SPH.Particles[0]->m_pressure;
 		for (auto*& i : SPH.Particles) {
 			if (ColoringCondition(*i)) {
-				if (i->m_pressure.val < minVal) { minVal = i->m_pressure.val; }
-				if (i->m_pressure.val > maxVal) { maxVal = i->m_pressure.val; }
+				if (i->m_pressure < minVal) { minVal = i->m_pressure; }
+				if (i->m_pressure > maxVal) { maxVal = i->m_pressure; }
 			}
 		}
 		m_maxVal = maxVal;
@@ -1947,7 +2026,7 @@ void SPH_CD::Coloring() {
 
 		for (auto*& i : SPH.Particles) {
 			if (ColoringCondition(*i)) {
-				currentVal = i->m_pressure.val;
+				currentVal = i->m_pressure;
 				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
 				continue;
 			}
@@ -1971,6 +2050,98 @@ void SPH_CD::Coloring() {
 		for (auto*& i : SPH.Particles) {
 			if (ColoringCondition(*i)) {
 				currentVal = i->nrOfNeighbours;
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
+	else if (ColoringParameter == "gamma") {
+		ColoringUnknow = false;
+		changeColorParamTo("gamma");
+		float maxVal = SPH.Particles[0]->gamma;
+		float minVal = SPH.Particles[0]->gamma;
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (i->gamma < minVal) { minVal = i->gamma; }
+				if (i->gamma > maxVal) { maxVal = i->gamma; }
+			}
+		}
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = i->gamma;
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
+	else if (ColoringParameter == "dgamma_x") {
+		ColoringUnknow = false;
+		changeColorParamTo("dgamma_x");
+		float maxVal = SPH.Particles[0]->grad_gamma.x;
+		float minVal = SPH.Particles[0]->grad_gamma.x;
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (i->grad_gamma.x < minVal) { minVal = i->grad_gamma.x; }
+				if (i->grad_gamma.x > maxVal) { maxVal = i->grad_gamma.x; }
+			}
+		}
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = i->grad_gamma.x;
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
+	else if (ColoringParameter == "dgamma_y") {
+		ColoringUnknow = false;
+		changeColorParamTo("dgamma_y");
+		float maxVal = SPH.Particles[0]->grad_gamma.y;
+		float minVal = SPH.Particles[0]->grad_gamma.y;
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (i->grad_gamma.y < minVal) { minVal = i->grad_gamma.y; }
+				if (i->grad_gamma.y > maxVal) { maxVal = i->grad_gamma.y; }
+			}
+		}
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = i->grad_gamma.y;
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
+	else if (ColoringParameter == "dgamma_z") {
+		ColoringUnknow = false;
+		changeColorParamTo("dgamma_z");
+		float maxVal = SPH.Particles[0]->grad_gamma.z;
+		float minVal = SPH.Particles[0]->grad_gamma.z;
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (i->grad_gamma.z < minVal) { minVal = i->grad_gamma.z; }
+				if (i->grad_gamma.z > maxVal) { maxVal = i->grad_gamma.z; }
+			}
+		}
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = i->grad_gamma.z;
 				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
 				continue;
 			}
@@ -2741,12 +2912,12 @@ void SPH_CD::PPC_InternalForces(ParticlePair* pp, std::vector<part_prec_3>* dvdt
 
 	switch (m_options.velocityChangeAlgorithm_pressurePart) {
 	case(0): //мой вывод (как я понимаю)
-		presspartM = (pp->NBpart_ptr->m_mass) *((pp->Mpart_ptr->m_pressure.val / pow(pp->Mpart_ptr->m_density.val, 2)) + (pp->NBpart_ptr->m_pressure.val / pow(pp->NBpart_ptr->m_density.val, 2)));
-		presspartNB = (pp->Mpart_ptr->m_mass) *((pp->Mpart_ptr->m_pressure.val / pow(pp->Mpart_ptr->m_density.val, 2)) + (pp->NBpart_ptr->m_pressure.val / pow(pp->NBpart_ptr->m_density.val, 2)));
+		presspartM = (pp->NBpart_ptr->m_mass) *((pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2)) + (pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2)));
+		presspartNB = (pp->Mpart_ptr->m_mass) *((pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2)) + (pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2)));
 		break;
 	case(1):
-		presspartM = (pp->NBpart_ptr->m_mass) / ((pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_density.val))*((pp->Mpart_ptr->m_pressure.val) + (pp->NBpart_ptr->m_pressure.val));
-		presspartNB = (pp->Mpart_ptr->m_mass) / ((pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_density.val))*((pp->NBpart_ptr->m_pressure.val) + (pp->Mpart_ptr->m_pressure.val));
+		presspartM = (pp->NBpart_ptr->m_mass) / ((pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_density.val))*((pp->Mpart_ptr->m_pressure) + (pp->NBpart_ptr->m_pressure));
+		presspartNB = (pp->Mpart_ptr->m_mass) / ((pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_density.val))*((pp->NBpart_ptr->m_pressure) + (pp->Mpart_ptr->m_pressure));
 		//std::cout << presspartM << "  =  " << (pp->NBpart_ptr->m_mass) <<"/(" << (pp->Mpart_ptr->m_density.val)  << "*" << (pp->NBpart_ptr->m_density.val) <<  ")*(" << (pp->Mpart_ptr->m_pressure.val)  << " + " << (pp->NBpart_ptr->m_pressure.val) << ")\n";
 		break;
 	default:
@@ -3097,8 +3268,8 @@ void SPH_CD::PPC_FPMStandart_vec(ParticlePair* pp, std::vector<std::vector<part_
 		MpParam = pp->Mpart_ptr->m_velocity.val.z;
 		NBpParam = pp->NBpart_ptr->m_velocity.val.z;
 	}else if (param == "Pressure") {
-		MpParam = pp->Mpart_ptr->m_pressure.val;
-		NBpParam = pp->NBpart_ptr->m_pressure.val;
+		MpParam = pp->Mpart_ptr->m_pressure;
+		NBpParam = pp->NBpart_ptr->m_pressure;
 	}else if (param == "h") {
 		MpParam = pp->Mpart_ptr->m_SmR;
 		NBpParam = pp->NBpart_ptr->m_SmR;
@@ -3410,8 +3581,8 @@ void SPH_CD::PPC_FPMDifference_vec(ParticlePair* pp, std::vector<std::vector<par
 		NBpParam = pp->NBpart_ptr->m_velocity.val.z;
 	}
 	if (param == "Pressure") {
-		MpParam = pp->Mpart_ptr->m_pressure.val;
-		NBpParam = pp->NBpart_ptr->m_pressure.val;
+		MpParam = pp->Mpart_ptr->m_pressure;
+		NBpParam = pp->NBpart_ptr->m_pressure;
 	}
 
 
@@ -3525,22 +3696,22 @@ void SPH_CD::DensityDiffusiveTerm(std::vector<part_prec>* drhodt, ParticlePair *
 	(*drhodt)[pp->NBpart_ptr->m_id] += dot((static_cast<part_prec>(2.0)*(pp->NBpart_ptr->m_density.val - pp->Mpart_ptr->m_density.val) / pp->NBpart_ptr->distance(pp->Mpart_ptr)*pp->vec_e(pp->NBpart_ptr)), (pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr)))*(pp->Mpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val);
 }
 
-void SPH_CD::RenormPressurePartCalculation(std::vector<part_prec_3>* dvdt, ParticlePair * pp, std::vector<part_prec>* gamma) {
+void SPH_CD::RenormPressurePartCalculation(std::vector<part_prec_3>* dvdt, ParticlePair * pp) {
 	switch (m_options.velocityChangeAlgorithm_pressurePart) {
 	case(0):
 		// k=0
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure.val / (*gamma)[pp->Mpart_ptr->m_id] + pp->NBpart_ptr->m_pressure.val / (*gamma)[pp->NBpart_ptr->m_id])*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure.val / (*gamma)[pp->NBpart_ptr->m_id] + pp->Mpart_ptr->m_pressure.val / (*gamma)[pp->Mpart_ptr->m_id])*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
 		break;
 	case(1):
 		// k=1
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure.val / pow(pp->Mpart_ptr->m_density.val, 2) / (*gamma)[pp->Mpart_ptr->m_id] + pp->NBpart_ptr->m_pressure.val / pow(pp->NBpart_ptr->m_density.val, 2) / (*gamma)[pp->NBpart_ptr->m_id])*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-		(*dvdt)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure.val / pow(pp->NBpart_ptr->m_density.val, 2) / (*gamma)[pp->NBpart_ptr->m_id] + pp->Mpart_ptr->m_pressure.val / pow(pp->Mpart_ptr->m_density.val, 2) / (*gamma)[pp->Mpart_ptr->m_id])*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+		(*dvdt)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
 		break;
 	case(2):
 		// k=2
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure.val*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / (*gamma)[pp->Mpart_ptr->m_id] + pp->NBpart_ptr->m_pressure.val*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / (*gamma)[pp->NBpart_ptr->m_id])*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-		(*dvdt)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure.val*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / (*gamma)[pp->NBpart_ptr->m_id] + pp->Mpart_ptr->m_pressure.val*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / (*gamma)[pp->Mpart_ptr->m_id])*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+		(*dvdt)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
 		break;
 	default:
 		break;
@@ -3557,27 +3728,31 @@ void SPH_CD::DensityRecalculation() {
 	std::vector<part_prec_3> gamma_deriv;
 	gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
 	if (m_options.boundary_handling == RENORMALIZATION) {
+		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
-			m_options.ContinuityEquation->Calc(&drhodt, i);
-
-			if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
-				//DensityCalculation(&drhodt, i);
-				RenormFactorCalc(&gamma, i);
-				RenormFactorDerivCalc(&gamma_deriv, i);
+			for (auto ce : m_options.ContinuityEquations) {
+				ce->Calc(&drhodt, i);
 			}
+			m_options.RenormalizationEquation->Calc(&gamma, i);
+			m_options.RenormalizationEquation->Calc(&gamma_deriv, i, nrOfDim);
+			//if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
+			//	//DensityCalculation(&drhodt, i);
+			//	RenormFactorCalc(&gamma, i);
+			//	RenormFactorDerivCalc(&gamma_deriv, i);
+			//}
 		}
 		for (auto*& i : SPH.Particles) {
 			//std::cout << drhodt[i->m_id] << "   " << gamma[i->m_id] <<"   "<< i->m_density.val << "   " << dot(gamma_deriv[i->m_id], i->m_velocity.val)  << "\n";
-			i->m_density.dval = drhodt[i->m_id] / gamma[i->m_id] - (i->m_density.val* dot(gamma_deriv[i->m_id], i->m_velocity.val)) / gamma[i->m_id];
+			i->gamma = gamma[i->m_id];
+			i->grad_gamma = gamma_deriv[i->m_id];
+			i->m_density.dval = drhodt[i->m_id] / i->gamma - (i->m_density.val* dot(i->grad_gamma, i->m_velocity.val)) / i->gamma;
 		}
 
 	}
 	else {
+		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
-			m_options.ContinuityEquation->Calc(&drhodt, i);
-			//if (PPL_BOTH_PARTICLES_ARE(REAL, i))  {
-			//	DensityCalculation(&drhodt, i);
-			//}
+			for (auto ce : m_options.ContinuityEquations) { ce->Calc(&drhodt, i); }
 		}
 		for (auto*& i : SPH.Particles) {
 			i->m_density.dval = drhodt[i->m_id];
@@ -3595,36 +3770,42 @@ void SPH_CD::VelocityRecalculation() {
 		gamma.resize(SPH.Particles.size(), 0.f);
 		std::vector<part_prec_3> gamma_deriv;
 		gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
-			if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
-				RenormFactorCalc(&gamma, i);
-				RenormFactorDerivCalc(&gamma_deriv, i);
-			}
+			m_options.RenormalizationEquation->Calc(&gamma, i);
+			m_options.RenormalizationEquation->Calc(&gamma_deriv, i, nrOfDim);
+			//if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
+			//	RenormFactorCalc(&gamma, i);
+			//	RenormFactorDerivCalc(&gamma_deriv, i);
+			//}
 		}
+		for (auto*& i : SPH.Particles) {
+			i->gamma = gamma[i->m_id];
+			i->grad_gamma = gamma_deriv[i->m_id];
+		}
+		//second cycle
 		for (auto* i : SPH.ParticlePairs) {
-			m_options.VelocityEquation_ViscosityPart->Calc(&dvdt_dvisc, i, nrOfDim);
-			if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
-				RenormPressurePartCalculation(&dvdt_press, i, &gamma);
-				//ViscosityPartCalculation(&dvdt_dvisc, i);
+			for (auto mc_vp : m_options.MomentumConservation_ViscosityParts) {
+				mc_vp->Calc(&dvdt_dvisc, i, nrOfDim);
 			}
+			m_options.RenormalizationPressuerPartEquation->Calc(&dvdt_press, i, nrOfDim);
+			//if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
+			//	RenormPressurePartCalculation(&dvdt_press, i);
+			//	//ViscosityPartCalculation(&dvdt_dvisc, i);
+			//}
 		}
 		for (auto*& i : SPH.Particles) {
 			if(i->m_type == REAL){
 				//std::cout << (dvdt)[i->m_id].x << ", " << (dvdt)[i->m_id].y <<"   "<< (gamma)[i->m_id] << "   " <<(gamma_deriv)[i->m_id].x << ", " << (gamma_deriv)[i->m_id].y << "\n";
-				i->m_velocity.dval = (dvdt_dvisc)[i->m_id] + (dvdt_press)[i->m_id] + i->m_pressure.val/i->m_density.val*(gamma_deriv)[i->m_id] / (gamma)[i->m_id];
+				i->m_velocity.dval = (dvdt_dvisc)[i->m_id] + (dvdt_press)[i->m_id] + i->m_pressure/i->m_density.val*i->grad_gamma / i->gamma;
 			}
 		}
 	}
 	else{
+		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
-			m_options.VelocityEquation_PressurePart->Calc(&dvdt_press, i, nrOfDim);
-			m_options.VelocityEquation_ViscosityPart->Calc(&dvdt_dvisc, i, nrOfDim);
-			//if ((PPL_BOTH_PARTICLES_ARE(REAL, i)) or (PPL_MAIN_PARTICLE_IS(VIRTUAL, i) or PPL_NEIGHBOUR_PARTICLE_IS(VIRTUAL, i))) {
-			//	PressurePartCalculation(&dvdt_press, i);
-			//}
-			//if ((PPL_BOTH_PARTICLES_ARE(REAL, i)) or (PPL_MAIN_PARTICLE_IS(VIRTUAL, i) or PPL_NEIGHBOUR_PARTICLE_IS(VIRTUAL, i))) {
-			//	ViscosityPartCalculation(&dvdt_dvisc, i);
-			//}
+			for (auto mc_pp : m_options.MomentumConservation_PressureParts) { mc_pp->Calc(&dvdt_press, i, nrOfDim); }
+			for (auto mc_vp : m_options.MomentumConservation_ViscosityParts) { mc_vp->Calc(&dvdt_dvisc, i, nrOfDim); }
 		}
 		for (auto*& i : SPH.Particles) { 
 			i->m_velocity.dval = (dvdt_dvisc)[i->m_id] + (dvdt_press)[i->m_id];
@@ -3653,31 +3834,44 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 		gamma.resize(SPH.Particles.size(), 0.f);
 		gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
 		std::cout << "Renormalization\n";
+		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
-			m_options.ContinuityEquation->Calc(&drhodt, i);
-			if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
-				//DensityCalculation(&drhodt, i);
-				RenormFactorCalc(&gamma, i);
-				RenormFactorDerivCalc(&gamma_deriv, i);
-				if (m_options.Density_Diffusion_term) {
-					DensityDiffusiveTerm(&dens_diff, i);
-				}
+			//m_options.ContinuityEquation->Calc(&drhodt, i);
+			for (auto *& ce : m_options.ContinuityEquations) {
+				ce->Calc(&drhodt, i);
 			}
-			//if (m_options.BoundaryCalculation) {
-			//	m_options.BoundaryDensity->Calc(&drhodt, i);
+			m_options.RenormalizationEquation->Calc(&gamma, i);
+			m_options.RenormalizationEquation->Calc(&gamma_deriv, i, nrOfDim);
+			//if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
+			//	//DensityCalculation(&drhodt, i);
+			//	RenormFactorCalc(&gamma, i);
+			//	RenormFactorDerivCalc(&gamma_deriv, i);
+			//
+			//	//if (m_options.Density_Diffusion_term) {
+			//	//	DensityDiffusiveTerm(&dens_diff, i);
+			//	//}
 			//}
 		}
+		for (auto*& i : SPH.Particles) {
+			i->gamma = gamma[i->m_id];
+			i->grad_gamma = gamma_deriv[i->m_id];
+		}
+		//second cycle
 		for (auto* i : SPH.ParticlePairs) {
-			m_options.VelocityEquation_ViscosityPart->Calc(&dvdt_dvisc, i, nrOfDim);
-			if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
-				RenormPressurePartCalculation(&dvdt_press, i, &gamma);
-				//ViscosityPartCalculation(&dvdt_dvisc, i);
+			m_options.RenormalizationPressuerPartEquation->Calc(&dvdt_press, i, nrOfDim);
+			for (auto mc_vp : m_options.MomentumConservation_ViscosityParts) {
+				mc_vp->Calc(&dvdt_dvisc, i, nrOfDim);
 			}
+			//if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
+			//	RenormPressurePartCalculation(&dvdt_press, i);
+			//	//ViscosityPartCalculation(&dvdt_dvisc, i);
+			//}
 		}
 		for (auto*& i : SPH.Particles) {
-			i->m_density.dval = drhodt[i->m_id] / gamma[i->m_id] - (i->m_density.val* dot(gamma_deriv[i->m_id], i->m_velocity.val)) / gamma[i->m_id];
+			i->m_density.dval = drhodt[i->m_id] / i->gamma - (i->m_density.val* dot(i->grad_gamma, i->m_velocity.val)) / i->gamma;
 			if (m_options.Density_Diffusion_term) {	i->m_density.dval += dens_diff[i->m_id]; }
-			i->m_velocity.dval = (dvdt_dvisc)[i->m_id] + (dvdt_press)[i->m_id] + i->m_pressure.val / i->m_density.val*(gamma_deriv)[i->m_id] / (gamma)[i->m_id];
+			i->m_velocity.dval = (dvdt_dvisc)[i->m_id] + (dvdt_press)[i->m_id] + i->m_pressure / i->m_density.val*i->grad_gamma / i->gamma;
+			//std::cout << (dvdt_press)[i->m_id].x << "  " << (dvdt_press)[i->m_id].y << "\n";
 		}
 	}
 	else {
@@ -3687,28 +3881,24 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 		//std::cout << dvdt[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1].x << " === " << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.dval.x << " -> ";
 
 		//gamma.resize(SPH.Particles.size(), 0.f);
+		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
-			m_options.ContinuityEquation->Calc(&drhodt, i);
-			if ((PPL_BOTH_PARTICLES_ARE(REAL, i))) {
-				//DensityCalculation(&drhodt, i);
-				//RenormFactorCalc(&gamma, i);
-				if (m_options.Density_Diffusion_term) {
-					DensityDiffusiveTerm(&dens_diff, i);
-				}
+			for (auto ce : m_options.ContinuityEquations) {
+				ce->Calc(&drhodt, i);
 			}
-
-			m_options.VelocityEquation_PressurePart->Calc(&dvdt_press, i, nrOfDim);
-			m_options.VelocityEquation_ViscosityPart->Calc(&dvdt_dvisc, i, nrOfDim);
-			//if ((PPL_BOTH_PARTICLES_ARE(REAL, i)) or (PPL_MAIN_PARTICLE_IS(VIRTUAL, i) or PPL_NEIGHBOUR_PARTICLE_IS(VIRTUAL, i))) {
-			//	PressurePartCalculation(&dvdt_press, i);
+			//if ((PPL_BOTH_PARTICLES_ARE(REAL, i))) {
+			//	//DensityCalculation(&drhodt, i);
+			//	//RenormFactorCalc(&gamma, i);
+			//	if (m_options.Density_Diffusion_term) {
+			//		DensityDiffusiveTerm(&dens_diff, i);
+			//	}
 			//}
-			//if ((PPL_BOTH_PARTICLES_ARE(REAL, i)) or (PPL_MAIN_PARTICLE_IS(VIRTUAL, i) or PPL_NEIGHBOUR_PARTICLE_IS(VIRTUAL, i))) {
-			//	ViscosityPartCalculation(&dvdt_dvisc, i);
-			//}
-			//if (m_options.BoundaryCalculation) {
-			//	m_options.BoundaryDensity->Calc(&drhodt, i);
-			//}
-
+			for (auto mc_pp : m_options.MomentumConservation_PressureParts) {
+				mc_pp->Calc(&dvdt_press, i, nrOfDim);
+			}
+			for (auto mc_vp : m_options.MomentumConservation_ViscosityParts) {
+				mc_vp->Calc(&dvdt_dvisc, i, nrOfDim);
+			}
 		}
 		for (auto*& i : SPH.Particles) {
 			//if(i->m_type == REAL)   std::cout << gamma[i->m_id] << "\n";
@@ -3717,9 +3907,6 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 			i->m_velocity.dval = (dvdt_dvisc)[i->m_id] + (dvdt_press)[i->m_id];
 		}
 	}
-
-
-
 	//std::cout << "id" << " " << "\t  drho" << " " << "\t  dv_visc.x" << ", " << "\t  dv_visc.y" << " " << "\t  dv_press.x" << ", " << "\t  dv_press.y" << "\n";
 	//for (auto*& i : SPH.Particles) {
 	//	if(i->m_type == REAL){
@@ -3732,25 +3919,6 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 	//std::cout << " = " << drhodt[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1] << " == " << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_density.dval << "\n";
 	//std::cout << " = " << dvdt[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1].x << " == " << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.dval.x << "\n";
 }
-
-
-void SPH_CD::BoundaryCalculation() {
-	std::vector<part_prec> drhodt;
-	drhodt.resize(SPH.Particles.size(), 0.f);
-	std::vector<part_prec> gamma;
-	gamma.resize(SPH.Particles.size(), 0.f);
-
-
-	for (auto* i : SPH.ParticlePairs) {
-		//m_options.BoundaryDensity->Calc(&drhodt, i);
-		//m_options.CorrectionEquation->Calc(&gamma, i);
-	}
-	for (auto*& i : SPH.Particles) {
-		//i->m_density.dval = drhodt[i->m_id] / gamma[i->m_id];
-		i->m_density.dval = drhodt[i->m_id];
-	}
-}
-
 
 
 void SPH_CD::RecalcPrep() {

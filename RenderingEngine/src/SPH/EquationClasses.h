@@ -136,6 +136,14 @@ public:
 
 
 
+class Empty_Function : public ConcreteEquation {
+public:
+	Empty_Function() {};
+
+	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override { }
+
+	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override { }
+};
 
 
 class K0_VelPressurePart_dval : public ConcreteEquation {
@@ -150,10 +158,10 @@ public:
 		switch (ppn)
 		{
 		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure.val + pp->NBpart_ptr->m_pressure.val)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure + pp->NBpart_ptr->m_pressure)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
 			break;
 		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure.val + pp->Mpart_ptr->m_pressure.val)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure + pp->Mpart_ptr->m_pressure)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
 			break;
 		default:
 			break;
@@ -175,10 +183,10 @@ public:
 		switch (ppn)
 		{
 		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure.val / pow(pp->Mpart_ptr->m_density.val, 2) + pp->NBpart_ptr->m_pressure.val / pow(pp->NBpart_ptr->m_density.val, 2))*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) + pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2))*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
 			break;
 		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure.val / pow(pp->NBpart_ptr->m_density.val, 2) + pp->Mpart_ptr->m_pressure.val / pow(pp->Mpart_ptr->m_density.val, 2))*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) + pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2))*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
 			break;
 		default:
 			break;
@@ -198,10 +206,10 @@ public:
 		switch (ppn)
 		{
 		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure.val*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) + pp->NBpart_ptr->m_pressure.val*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3))*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) + pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3))*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
 			break;
 		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure.val*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) + pp->Mpart_ptr->m_pressure.val*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3))*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) + pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3))*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
 			break;
 		default:
 			break;
@@ -396,9 +404,6 @@ public:
 		assert("BoundaryDensityUpdate_VAL::wrong_func" && 0);
 	}
 };
-
-
-
 class BoundaryVelocityUpdate_VAL : public ConcreteEquation {
 public:
 	BoundaryVelocityUpdate_VAL() {};
@@ -420,9 +425,6 @@ public:
 		}
 	}
 };
-
-
-
 class BoundaryCorrection : public ConcreteEquation {
 public:
 	BoundaryCorrection() {};
@@ -446,3 +448,108 @@ public:
 };
 
 
+//RENORMALIZATION
+
+
+class RenormalizationFactors : public ConcreteEquation {
+public:
+	RenormalizationFactors() {};
+	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
+		switch (ppn)
+		{
+		case PPN_MAIN:
+			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
+			break;
+		case PPN_NEIGHBOUR:
+			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val *pp->W(pp->NBpart_ptr);
+			break;
+		default:
+			break;
+		}
+	}
+
+	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
+		switch (ppn)
+		{
+		case PPN_MAIN:
+			(*vector_val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->vec_e(pp->Mpart_ptr) * pp->dWd(R, pp->Mpart_ptr);
+			break;
+		case PPN_NEIGHBOUR:
+			(*vector_val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val *pp->vec_e(pp->NBpart_ptr) *pp->dWd(R, pp->NBpart_ptr);
+			break;
+		default:
+			break;
+		}
+	}
+};
+
+
+
+class Renormalization_K0_VelPressurePart : public ConcreteEquation {
+public:
+	Renormalization_K0_VelPressurePart() {};
+
+	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
+		assert("Renormalization_K0_VelPressurePart::wrong_func" && 0);
+	}
+
+	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
+		switch (ppn)
+		{
+		case PPN_MAIN:
+			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+			break;
+		case PPN_NEIGHBOUR:
+			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+			break;
+		default:
+			break;
+		}
+
+
+	}
+};
+class Renormalization_K1_VelPressurePart : public ConcreteEquation {
+public:
+	Renormalization_K1_VelPressurePart() {};
+
+	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
+		assert("Renormalization_K1_VelPressurePart::wrong_func" && 0);
+	}
+
+	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
+		switch (ppn)
+		{
+		case PPN_MAIN:
+			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+			break;
+		case PPN_NEIGHBOUR:
+			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+			break;
+		default:
+			break;
+		}
+	}
+};
+class Renormalization_K2_VelPressurePart : public ConcreteEquation {
+public:
+	Renormalization_K2_VelPressurePart() {};
+
+	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
+		assert("Renormalization_K2_VelPressurePart::wrong_func" && 0);
+	}
+
+	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
+		switch (ppn)
+		{
+		case PPN_MAIN:
+			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
+			break;
+		case PPN_NEIGHBOUR:
+			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
+			break;
+		default:
+			break;
+		}
+	}
+};
