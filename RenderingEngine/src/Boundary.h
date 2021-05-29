@@ -12,7 +12,7 @@ enum BCPARAMETER {
 	ALL_PARAMETRS
 };
 
-class ÑD_Boundary {
+class CD_Boundary {
 private:
 	Mesh* B_mesh;
 	std::vector<BOUNDARYCONDITION> BC_types;
@@ -23,7 +23,7 @@ private:
 
 public:
 	   
-	ÑD_Boundary(Mesh* mesh, BOUNDARYCONDITION BC_type, BCPARAMETER BC_param, float BC_val)
+	CD_Boundary(Mesh* mesh, BOUNDARYCONDITION BC_type, BCPARAMETER BC_param, float BC_val)
 	: B_mesh(new Mesh(mesh)) {
 		periodic = false;
 		BC_parameters.resize(ALL_PARAMETRS);
@@ -52,13 +52,13 @@ public:
 		}
 	}
 
-	ÑD_Boundary(Mesh* mesh, Mesh* mesh_to_loop) : B_mesh(new Mesh(mesh)), periodic_mesh(new Mesh(mesh_to_loop)) {
+	CD_Boundary(Mesh* mesh, Mesh* mesh_to_loop) : B_mesh(new Mesh(mesh)), periodic_mesh(new Mesh(mesh_to_loop)) {
 		periodic = true;
 	}
 
 
 
-	ÑD_Boundary(ÑD_Boundary* newBoundary)
+	CD_Boundary(CD_Boundary* newBoundary)
 		: B_mesh(newBoundary->B_mesh) {
 
 		for (auto i : newBoundary->BC_types) {
@@ -94,15 +94,15 @@ public:
 
 
 
-	friend bool operator==(const ÑD_Boundary& CDB1, const ÑD_Boundary& CDB2);
-	friend bool operator!=(const ÑD_Boundary& CDB1, const ÑD_Boundary& CDB2);
+	friend bool operator==(const CD_Boundary& CDB1, const CD_Boundary& CDB2);
+	friend bool operator!=(const CD_Boundary& CDB1, const CD_Boundary& CDB2);
 
 
 
 
 
 
-	~ÑD_Boundary() {
+	~CD_Boundary() {
 		safeDelete(&B_mesh);
 		if (periodic_mesh != nullptr) {
 			safeDelete(&periodic_mesh);

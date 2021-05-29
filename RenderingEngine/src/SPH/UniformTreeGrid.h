@@ -96,7 +96,7 @@ public:
 			}
 		}
 	}
-	void CreatingParticlePairs(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim) {
+	void CreatingParticlePairs(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim, cd_prec &mindistance) {
 		if (leaves[0] == nullptr) {
 			for (auto p : particles_inside) {
 				std::set<Particle*> setOfNb;
@@ -108,17 +108,17 @@ public:
 						}
 					}
 				}
-				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim)); } //CREATING PAIRS
+				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim, mindistance)); } //CREATING PAIRS
 			}
 		}
 		else {
 			for (auto l : leaves) {
-				l->CreatingParticlePairs(PartPairs, KernelCoef, dim);
+				l->CreatingParticlePairs(PartPairs, KernelCoef, dim, mindistance);
 			}
 		}
 	}
 
-	void addingVirtualParticles(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim) {
+	void addingVirtualParticles(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim, cd_prec &mindistance) {
 		if (leaves[0] == nullptr) {
 			for (auto p : particles_inside) {
 				std::set<Particle*> setOfNb;
@@ -133,13 +133,13 @@ public:
 						}
 					}
 				}
-				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim)); } //CREATING PAIRS
+				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim, mindistance)); } //CREATING PAIRS
 			}
 		}
 		else {
 			for (auto l : leaves) {
 				//std::cout << "                    |              \n";
-				l->addingVirtualParticles(PartPairs, KernelCoef, dim);
+				l->addingVirtualParticles(PartPairs, KernelCoef, dim, mindistance);
 			}
 		}
 	}
@@ -275,7 +275,7 @@ public:
 			}
 		}
 	}
-	void CreatingParticlePairs(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim) {
+	void CreatingParticlePairs(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim, cd_prec &mindistance) {
 		if (leaves[0] == nullptr) {
 			for (auto p : particles_inside) {
 				std::set<Particle*> setOfNb;
@@ -287,17 +287,17 @@ public:
 						}
 					}
 				}
-				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim)); } //CREATING PAIRS
+				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim, mindistance)); } //CREATING PAIRS
 			}
 		}
 		else {
 			for (auto l : leaves) {
-				l->CreatingParticlePairs(PartPairs, KernelCoef, dim);
+				l->CreatingParticlePairs(PartPairs, KernelCoef, dim, mindistance);
 			}
 		}
 	}
 
-	void addingVirtualParticles(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim) {
+	void addingVirtualParticles(std::vector<ParticlePair*>& PartPairs, part_prec KernelCoef, DIMENSIONS dim, cd_prec &mindistance) {
 		if (leaves[0] == nullptr) {
 			for (auto p : particles_inside) {
 				std::set<Particle*> setOfNb;
@@ -312,13 +312,13 @@ public:
 						}
 					}
 				}
-				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim)); } //CREATING PAIRS
+				for (auto nb_part : setOfNb) { PartPairs.push_back(new ParticlePair(p, nb_part, dim, mindistance)); } //CREATING PAIRS
 			}
 		}
 		else {
 			for (auto l : leaves) {
 				//std::cout << "                    |              \n";
-				l->addingVirtualParticles(PartPairs, KernelCoef, dim);
+				l->addingVirtualParticles(PartPairs, KernelCoef, dim, mindistance);
 			}
 		}
 	}

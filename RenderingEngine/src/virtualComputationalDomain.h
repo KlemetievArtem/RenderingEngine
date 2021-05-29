@@ -36,8 +36,8 @@ enum MICROCOSME
 };
 
 struct CompDomainStatystic {
-	float maxVelocity;
-	float minScale;
+	cd_prec maxVelocity;
+	cd_prec minScale;
 
 	float aveScale;
 };
@@ -68,7 +68,7 @@ private:
 
 
 protected:
-	std::vector<ÑD_Boundary*> Boundaries;
+	std::vector<CD_Boundary*> Boundaries;
 	int ModelId;
 	int CD_ModelId;
 	int MaterialId;
@@ -128,7 +128,7 @@ public:
 	void timeStepEnd() { currentTime += deltaTime; }
 
 
-	void addBoundary(ÑD_Boundary* boundary) {
+	void addBoundary(CD_Boundary* boundary) {
 		Boundaries.push_back(boundary);
 	}
 	void InitialBoundaryRendering(std::vector<Mesh*>* meshes) {
@@ -142,7 +142,7 @@ public:
 	}
 	void assignBoundaryModel(int id) { BoundaryModelId = id; }
 
-	virtual void Initilization() = 0;
+	virtual void Initilization(glm::vec3 velocity, std::vector<CD_Boundary*>* activeBoundaries) = 0;
 	//virtual void InitialRendering(std::vector<Mesh*>* meshes) = 0;
 
 	virtual void assignPresetModels(int id) { ModelId = id; }
@@ -159,9 +159,10 @@ public:
 
 
 
-
-	void setStatMaxVel(float val) { m_statystic.maxVelocity = val; }
-	void setStatMinScale(float val) { m_statystic.minScale = val; }
+	
+	void setStatMaxVel(cd_prec val) { m_statystic.maxVelocity = val; }
+	void setStatMinScale(cd_prec val) { m_statystic.minScale = val; }
+	cd_prec getStatMinScale() { return m_statystic.minScale; }
 	cd_prec getStatMinTime() { return m_statystic.minScale / m_statystic.maxVelocity; }
 
 	void setStatAveScale(float val) { m_statystic.aveScale = val; }

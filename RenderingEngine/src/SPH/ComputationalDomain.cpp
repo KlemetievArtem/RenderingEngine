@@ -33,17 +33,35 @@ glm::mat3x3 Zrot(float radians) {
 };
 
 
+void SPH_CD::FirstMiddleLastCMoutput() {
+	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
+		std::cout << "	id:		first:" << SPH.Particles[0]->m_id << "	";
+		std::cout << "	middle:" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_id << "	";
+		std::cout << "last:" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_id << "\n";
 
+		std::cout << "	position:	{" << SPH.Particles[0]->m_position.val.x << "," << SPH.Particles[0]->m_position.val.y << "," << SPH.Particles[0]->m_position.val.z << "} ";
+		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.z << "} ";
+		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.z << "}\n";
 
-void SPH_CD::Initilization() {
-	if (computationalDomain_mode == MODE_CD::CD_DEBUG)	{
-		std::cout << "SPH_CD::Initilization\n";
+		std::cout << "	velocity:	{" << SPH.Particles[0]->m_velocity.val.x << "," << SPH.Particles[0]->m_velocity.val.y << "," << SPH.Particles[0]->m_velocity.val.z << "} ";
+		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.z << "} ";
+		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.z << "}\n";
+
+		std::cout << "	density:	" << SPH.Particles[0]->m_density.val << "	";
+		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_density.val << "	";
+		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_density.val << "\n";
+
+		std::cout << "	mass:		" << SPH.Particles[0]->m_mass << "	";
+		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_mass << "	";
+		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_mass << "\n";
 	}
 
-	//  d(Vx)/dt d(Density)/dt
+}
 
-	// Перенести в функцию EquationsInitialization
-
+void SPH_CD::EquationsInitialization() {
+	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
+		std::cout << "SPH_CD::EquationsInitialization\n";
+	}
 	if (m_options.boundary_handling == RENORMALIZATION) {
 
 		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
@@ -60,24 +78,28 @@ void SPH_CD::Initilization() {
 
 
 
-		m_options.MomentumConservation_PressureParts.push_back(new Equation(new K2_VelPressurePart_dval()));
-		m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(REAL, ACTIVE);
+		//m_options.MomentumConservation_PressureParts.push_back(new Equation(new K2_VelPressurePart_dval()));
+		//m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(REAL, ACTIVE);
 		//m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
 
 		m_options.MomentumConservation_ViscosityParts.push_back(new Equation(new K2_VelViscosityPart_dval()));
 		m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(REAL, ACTIVE);
 		//m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
+
+		m_options.RenormalizationEquation = new Equation(new RenormalizationFactors());
+		m_options.RenormalizationEquation->addParticleType(REAL, ACTIVE);
+		m_options.RenormalizationEquation->addParticleType(BOUNDARY, REACTIVE);
+
+		m_options.RenormalizationPressuerPartEquation = new Equation(new Renormalization_K1_VelPressurePart());
+		m_options.RenormalizationPressuerPartEquation->addParticleType(REAL, ACTIVE);
+
+
 		m_options.VelocityUpdates.push_back(new TimeEquation(new VelocityUpdate_DVAL()));
 		m_options.VelocityUpdates[m_options.VelocityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
 		m_options.PositionUpdates.push_back(new TimeEquation(new PositionUpdate_add()));
 		m_options.PositionUpdates[m_options.PositionUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
-		m_options.RenormalizationEquation = new Equation(new RenormalizationFactors());
-		m_options.RenormalizationEquation->addParticleType(REAL, ACTIVE);
-
-		m_options.RenormalizationPressuerPartEquation = new Equation(new Renormalization_K1_VelPressurePart());
-		m_options.RenormalizationPressuerPartEquation->addParticleType(REAL, ACTIVE);
 	}
 	else {
 
@@ -115,18 +137,16 @@ void SPH_CD::Initilization() {
 	}
 
 
+}
+void SPH_CD::RealParticlesInitialization(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity = glm::vec3(0.0f, 0.f, 0.f), part_prec smR = InitialSmR, part_prec density = Dens0){
 
-	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
-		std::cout << "SPH_CD::Initilization::ParticleInitilization\n";
-	}
-	
 	int Nz = 1;
 	int Ny = int(sqrt(m_options.nrOfParticles[PARTICLETYPE::REAL]));
 	int Nx = int(sqrt(m_options.nrOfParticles[PARTICLETYPE::REAL]));
 
-	float dx = (getXmax() - getXmin()) / static_cast<float>(Nx);
-	float dy = (getYmax() - getYmin()) / static_cast<float>(Ny);
-	float dz = (getZmax() - getZmin()) / static_cast<float>(Nz);
+	float dx;// = (getXmax() - getXmin()) / static_cast<float>(Nx);
+	float dy;// = (getYmax() - getYmin()) / static_cast<float>(Ny);
+	float dz;// = (getZmax() - getZmin()) / static_cast<float>(Nz);
 
 	dx = (1.0) / static_cast<float>(Nx);
 	dy = (1.0) / static_cast<float>(Ny);
@@ -136,9 +156,13 @@ void SPH_CD::Initilization() {
 	m_options.average_dim_steps.y = dy;
 	m_options.average_dim_steps.z = dz;
 
-	float Xstart = getXmin() + dx / 2;
-	float Ystart = getYmin() + dy / 2;
-	float Zstart = getZmin();
+	float Xstart;// = getXmin() + dx / 2;
+	float Ystart;// = getYmin() + dy / 2;
+	float Zstart;// = getZmin();
+
+	Xstart = positionMin.x + dx / 2;
+	Ystart = positionMin.y + dy / 2;
+	Zstart = positionMin.z + dz / 2;
 
 	//Xstart = 0.25f;
 	//Ystart = 0.25f;
@@ -147,7 +171,7 @@ void SPH_CD::Initilization() {
 	int nx = 0;
 	int ny = 0;
 	int nz = 0;
-	
+
 	part_prec part_x;
 	part_prec part_y;
 	part_prec part_z;
@@ -165,10 +189,10 @@ void SPH_CD::Initilization() {
 		case(UNIFORM):
 			Zstart = getZmin();
 
-			part_x = Xstart + (nx) * dx;
-			if (nrOfDim > D1) part_y = Ystart + (ny ) * dy;
+			part_x = Xstart + (nx)* dx;
+			if (nrOfDim > D1) part_y = Ystart + (ny)* dy;
 			else part_y = 0.f;
-			if (nrOfDim > D2) part_z = Zstart + (nz) * dz;
+			if (nrOfDim > D2) part_z = Zstart + (nz)* dz;
 			else part_z = 0.f;
 			nx++;
 			if (nx == Nx) {
@@ -178,7 +202,7 @@ void SPH_CD::Initilization() {
 					ny = 0;
 					nz++;
 					if (nz == Nz) {
-						m_options.nrOfParticles[PARTICLETYPE::REAL] = i+1;
+						m_options.nrOfParticles[PARTICLETYPE::REAL] = i + 1;
 						break;
 					}
 				}
@@ -188,22 +212,25 @@ void SPH_CD::Initilization() {
 			break;
 		}
 
+		part_prec mass = density * m_options.average_dim_steps.x*m_options.average_dim_steps.y*m_options.average_dim_steps.z;
 
-		float smR = InitialSmR;
-		cd_prec density = Dens0;
-		cd_prec mass = density*m_options.average_dim_steps.x*m_options.average_dim_steps.y*m_options.average_dim_steps.z;
-
-		SPH.Particles.push_back(new Particle(i, PARTICLETYPE::REAL,glm::vec3(part_x, part_y, part_z), glm::vec3(0.0f, 0.f, 0.f), smR, density, mass));
+		SPH.Particles.push_back(new Particle(i, PARTICLETYPE::REAL, glm::vec3(part_x, part_y, part_z), glm::vec3(0.0f, 0.f, 0.f), smR, density, mass));
 		//std::cout << part_x << ", " << part_y << ", " << part_z << "\n";
 	}
 
 
 	std::cout << "SPH_CD::Initilization::REAL_PARTICLES_WERE_CREATED::" << m_options.nrOfParticles[PARTICLETYPE::REAL] << "\n";
+}
+void SPH_CD::BoundaryParticlesInitialization(std::vector<CD_Boundary*>* activeBoundaries) {
+
+
+	float Xstart;
+	float Ystart;
 
 	glm::vec3 AverageNormal;
-	int nrOfParticlesPerBoundary = static_cast<int>(m_options.nrOfParticles[PARTICLETYPE::BOUNDARY]/Boundaries.size());
-	int BoundaryParticleCount =0;
-	for (auto*& i : Boundaries) {
+	int nrOfParticlesPerBoundary = static_cast<int>(m_options.nrOfParticles[PARTICLETYPE::BOUNDARY] / activeBoundaries->size());
+	int BoundaryParticleCount = 0;
+	for (auto*& i : (*activeBoundaries)) {
 		int nrOfPolygons = static_cast<int>(i->ReturnMesh()->getNumberOfIndice()) / 3;
 
 		glm::vec3 OXYnormal = { 0.f,0.f,1.f };
@@ -259,15 +286,15 @@ void SPH_CD::Initilization() {
 			float t;
 			float a;
 			for (int side = 0;side < 3;side++) {
-				if(PlaneCoefA != 0){
+				if (PlaneCoefA != 0) {
 					a = -PolyLine0[side].z / (PolyLine1[side].z - PolyLine0[side].z);
 					t = a * (PolyLine1[side].y - PolyLine0[side].y) + PolyLine0[side].y;
-					if (-PlaneCoefD / PlaneCoefA - t * PlaneCoefB / PlaneCoefA == a*(PolyLine1[side].x - PolyLine0[side].x) + PolyLine0[side].x){
+					if (-PlaneCoefD / PlaneCoefA - t * PlaneCoefB / PlaneCoefA == a * (PolyLine1[side].x - PolyLine0[side].x) + PolyLine0[side].x) {
 
-					interP.x = -PlaneCoefD / PlaneCoefA - t * PlaneCoefB / PlaneCoefA;
-					interP.y = t;
-					interP.z = 0.f;
-					interPoints.push_back(interP);
+						interP.x = -PlaneCoefD / PlaneCoefA - t * PlaneCoefB / PlaneCoefA;
+						interP.y = t;
+						interP.z = 0.f;
+						interPoints.push_back(interP);
 					}
 				}
 				else {
@@ -296,7 +323,7 @@ void SPH_CD::Initilization() {
 			//std::cout << "pos1:{" << pos1.x << ", " << pos1.y << ", " << pos1.z << "},pos2:{" << pos2.x << ", " << pos2.y << ", " << pos2.z << "},pos3{" << pos3.x << ", " << pos3.y << ", " << pos3.z << "}\n";
 
 			float fi_x, fi_y, fi_z = 0.f;
-			bool rotationFlags[] = {false,false, false};
+			bool rotationFlags[] = { false,false, false };
 			// Z-ROTATION
 			if ((pos2.y != 0) or (pos2.x < 0)) {
 				fi_z = (asin(pos2.y / sqrt(pow(pos2.y, 2) + pow(pos2.x, 2))));
@@ -384,7 +411,7 @@ void SPH_CD::Initilization() {
 
 			glm::vec3 mincoord = pos1;
 			glm::vec3 maxcoord = pos1;
-			
+
 			// MAX AND MIN VALUES PER POLYGON
 			for (int dim = 0;dim < 3;dim++) {
 				if (mincoord[dim] > pos2[dim])
@@ -408,14 +435,14 @@ void SPH_CD::Initilization() {
 			int BNx = int(sqrt(static_cast<int>(nrOfParticlesPerBoundary / nrOfPolygons)));
 			int BNy = int(sqrt(static_cast<int>(nrOfParticlesPerBoundary / nrOfPolygons)));
 
-							
+
 			float Bdx = (maxcoord[0] - mincoord[0]) / static_cast<float>(BNx);
 			float Bdy = (maxcoord[1] - mincoord[1]) / static_cast<float>(BNy);
 
 			//FUTURE WARNING
-			if (Bdx > Bdy*2)
+			if (Bdx > Bdy * 2)
 				Bdx /= 2;
-			else if (Bdy > Bdx*2)
+			else if (Bdy > Bdx * 2)
 				Bdy /= 2;
 			//FUTURE WARNING
 
@@ -451,9 +478,9 @@ void SPH_CD::Initilization() {
 				//std::cout << BNx << "\n";
 
 				BNy = BNx;
-				Bdx = (max2D_x - min2D_x) / (static_cast<float>(BNx) );
-				Bdy = (max2D_y - min2D_y) / (static_cast<float>(BNy) );
-				
+				Bdx = (max2D_x - min2D_x) / (static_cast<float>(BNx));
+				Bdy = (max2D_y - min2D_y) / (static_cast<float>(BNy));
+
 			}
 
 
@@ -461,17 +488,17 @@ void SPH_CD::Initilization() {
 
 			int Bnx = 0;
 			int Bny = 0;
-			
+
 
 
 			for (int j = 0;j < static_cast<int>(nrOfParticlesPerBoundary / nrOfPolygons);) {
 				switch (m_options.distributionBOUNDARY) {
 				case(RANDOM):
-					if (nrOfDim == D2){
+					if (nrOfDim == D2) {
 						partB_z = 0.f;
-						partB_x = getRandomNumber(min2D_x,max2D_x);
+						partB_x = getRandomNumber(min2D_x, max2D_x);
 
-						if (abs(min2D_x - max2D_x) < 10E-06){
+						if (abs(min2D_x - max2D_x) < 10E-06) {
 							partB_y = getRandomNumber(min2D_y, max2D_y);
 							//std::cout << "getRandomNumber(" << min2D_y << ", " << max2D_y << ") = " << partB_y << "\n";
 						}
@@ -480,7 +507,7 @@ void SPH_CD::Initilization() {
 						}
 						//std::cout << partB_x << ", " << partB_y << "\n";
 					}
-					if(nrOfDim == D3) {
+					if (nrOfDim == D3) {
 						partB_x = getRandomNumber(mincoord[0], maxcoord[0]);
 						partB_y = getRandomNumber(mincoord[1], maxcoord[1]);
 						partB_z = 0.f;
@@ -544,7 +571,7 @@ void SPH_CD::Initilization() {
 					//std::cout << "[" << pos1.x << " , "<< pos3.x <<"]\n";
 					//std::cout << "LF1_3(x) = " << LF1_3.k << "*x + " << LF1_3.b<<"\n";
 					if (rand_pos.y < LF1_3.k*rand_pos.x + LF1_3.b) {
-						
+
 						if (rotationFlags[0])
 							rand_pos = Xrot(-fi_x)* rand_pos;
 						if (rotationFlags[1])
@@ -558,7 +585,8 @@ void SPH_CD::Initilization() {
 
 						if (i->isPeriodic()) {
 							bc_velocity = glm::vec3(0.0, 0.0, 0.0);
-						}else{
+						}
+						else {
 							bc_velocity = glm::vec3(i->getBCvals()[BCPARAMETER::VELOCITY_X], i->getBCvals()[BCPARAMETER::VELOCITY_Y], i->getBCvals()[BCPARAMETER::VELOCITY_Z]);
 						}
 						SPH.Particles.push_back(new Particle(m_options.nrOfParticles[PARTICLETYPE::REAL] + BoundaryParticleCount, PARTICLETYPE::BOUNDARY, rand_pos, bc_velocity, smR, density, mass));
@@ -573,7 +601,7 @@ void SPH_CD::Initilization() {
 					//std::cout << "[" << pos3.x << " , " << pos2.x << "]\n";
 					//std::cout << "LF2_3(x) = " << LF2_3.k << "*x + " << LF2_3.b << "\n";
 					if (rand_pos.y < LF2_3.k*rand_pos.x + LF2_3.b) {
-						
+
 						if (rotationFlags[0])
 							rand_pos = Xrot(-fi_x)* rand_pos;
 						if (rotationFlags[1])
@@ -581,7 +609,7 @@ void SPH_CD::Initilization() {
 						if (rotationFlags[2])
 							rand_pos = Zrot(-fi_z)* rand_pos;
 						rand_pos += newCoordOrigin;
-						
+
 
 						glm::vec3 bc_velocity;
 						if (i->isPeriodic()) {
@@ -611,29 +639,36 @@ void SPH_CD::Initilization() {
 		}
 	}
 	m_options.nrOfParticles[PARTICLETYPE::BOUNDARY] = BoundaryParticleCount;
-	std::cout << "SPH_CD::Initilization::BOUNDARY_PARTICLES_WERE_CREATED::"<< BoundaryParticleCount <<"\n";
-	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
-		std::cout << "	id:		first:" << SPH.Particles[0]->m_id << "	";
-		std::cout << "	middle:" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_id << "	";
-		std::cout << "last:" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL]-1]->m_id << "\n";
+	std::cout << "SPH_CD::Initilization::BOUNDARY_PARTICLES_WERE_CREATED::" << BoundaryParticleCount << "\n";
 
-		std::cout << "	position:	{" << SPH.Particles[0]->m_position.val.x << "," << SPH.Particles[0]->m_position.val.y << "," << SPH.Particles[0]->m_position.val.z << "} ";
-		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.z << "} ";
-		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.z << "}\n";
 
-		std::cout << "	velocity:	{" << SPH.Particles[0]->m_velocity.val.x << "," << SPH.Particles[0]->m_velocity.val.y << "," << SPH.Particles[0]->m_velocity.val.z << "} ";
-		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.z << "} ";
-		std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.z << "}\n";
+}
 
-		std::cout << "	density:	" << SPH.Particles[0]->m_density.val << "	";
-		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_density.val << "	";
-		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_density.val << "\n";
-
-		std::cout << "	mass:		" << SPH.Particles[0]->m_mass << "	";
-		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_mass << "	";
-		std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_mass << "\n";
+void SPH_CD::Initilization(glm::vec3 velocity, std::vector<CD_Boundary*>* activeBoundaries) {
+	if (computationalDomain_mode == MODE_CD::CD_DEBUG)	{
+		std::cout << "SPH_CD::Initilization\n";
 	}
-	std::cout << "\n";
+
+	setStatMinScale(InitialSmR*m_options.smoothingKernelLengthCoefficient);
+	//  d(Vx)/dt d(Density)/dt
+
+	// Перенести в функцию EquationsInitialization
+	EquationsInitialization();
+
+
+	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
+		std::cout << "SPH_CD::Initilization::ParticleInitilization\n";
+	}
+
+
+	glm::vec3 positionMin(0.0, 0.0, 0.0);
+	glm::vec3 domainSize(1.0, 1.0, 0.0);
+
+	RealParticlesInitialization(positionMin, domainSize);
+	BoundaryParticlesInitialization(activeBoundaries);
+
+	FirstMiddleLastCMoutput();
+
 	if (m_options.NBSAlg == NEIGBOURS_SEARCH_ALGORITHM::UNIFORM_GRID) {
 		uniformGridPartitionInitialization();
 	}
@@ -1059,28 +1094,7 @@ void SPH_CD::timeUpdate(cd_prec dt) {
 		default:
 			break;
 		}
-
-		if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
-			std::cout << "	id:		first:" << SPH.Particles[0]->m_id << "	";
-			std::cout << "	middle:" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_id << "	";
-			std::cout << "last:" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_id << "\n";
-
-			std::cout << "	position:	{" << SPH.Particles[0]->m_position.val.x << "," << SPH.Particles[0]->m_position.val.y << "," << SPH.Particles[0]->m_position.val.z << "} ";
-			std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_position.val.z << "} ";
-			std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_position.val.z << "}\n";
-
-			std::cout << "	velocity:	{" << SPH.Particles[0]->m_velocity.val.x << "," << SPH.Particles[0]->m_velocity.val.y << "," << SPH.Particles[0]->m_velocity.val.z << "} ";
-			std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_velocity.val.z << "} ";
-			std::cout << "	{" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.x << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.y << "," << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_velocity.val.z << "}\n";
-
-			std::cout << "	density:	" << SPH.Particles[0]->m_density.val << "	";
-			std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_density.val << "	";
-			std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_density.val << "\n";
-
-			std::cout << "	mass:		" << SPH.Particles[0]->m_mass << "	";
-			std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] / 2]->m_mass << "	";
-			std::cout << "	" << SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_mass << "\n";
-		}
+		FirstMiddleLastCMoutput();
 	}
 	else {
 	}
@@ -1108,7 +1122,6 @@ void SPH_CD::timeStep_thread(cd_prec dt, std::atomic<bool>& dataReadyForRender, 
 	}
 	//Reseting needed values
 	for (auto*& i : SPH.Particles) {
-		i->refreshNeighbours();
 		i->m_velocity.dval = part_prec_3(0.f);
 	}
 
@@ -1198,6 +1211,13 @@ bool SPH_CD::chekParticlePairsFor(Particle* p1, Particle* p2) {
 void SPH_CD::neighbourSearch() {
 	if (computationalDomain_mode == MODE_CD::CD_DEBUG) { std::cout << "SPH_CD::neighbourSearch::PARTICLE_PAIRS_WERE_CREATED::" << SPH.ParticlePairs.size() << " --> "; }
 	BM.resetBoundaryData();
+
+	for (auto*& i : SPH.Particles) {
+		i->refreshNeighbours();
+	}
+	cd_prec mindistance = getStatMinScale();
+
+
 	switch (m_options.NBSAlg) {
 	case(NEIGBOURS_SEARCH_ALGORITHM::DIRECT):
 		// Точно правильно
@@ -1208,7 +1228,7 @@ void SPH_CD::neighbourSearch() {
 				Particle* j_p = SPH.Particles[j];
 				if (i_p == j_p) continue;
 				if ((j_p->m_type == PARTICLETYPE::BOUNDARY) and (i_p->m_type == PARTICLETYPE::BOUNDARY)) continue; // Не учитываем пары Граница-Граница  
-				if (i_p->distance(j_p) <= m_options.smoothingKernelLengthCoefficient * (i_p->m_SmR + j_p->m_SmR) / 2.0) SPH.ParticlePairs.push_back(new ParticlePair(i_p, j_p, nrOfDim)); //CREATING PAIRS
+				if (i_p->distance(j_p) <= m_options.smoothingKernelLengthCoefficient * (i_p->m_SmR + j_p->m_SmR) / 2.0) SPH.ParticlePairs.push_back(new ParticlePair(i_p, j_p, nrOfDim, mindistance)); //CREATING PAIRS
 				j_p = nullptr;
 			}
 			//delete j_p;
@@ -1221,12 +1241,13 @@ void SPH_CD::neighbourSearch() {
 			Particle* i_p = SPH.Particles[i];
 			UG->addPoint(i_p);
 		}
-		UG->CreatingParticlePairs(SPH.ParticlePairs, m_options.smoothingKernelLengthCoefficient, nrOfDim);
+		UG->CreatingParticlePairs(SPH.ParticlePairs, m_options.smoothingKernelLengthCoefficient, nrOfDim, mindistance);
 		//UG->clear();
 		break;
 	default:
 		break;
 	}
+	setStatMinScale(mindistance);
 
 	// Mass recalculation
 	if (computationalDomain_mode == MODE_CD::CD_DEBUG) { std::cout << "SPH_CD::neighbourSearch::PARTICLE_PAIRS_WERE_CREATED::" << SPH.ParticlePairs.size() << "\n"; }
@@ -1321,13 +1342,13 @@ void SPH_CD::creatingVirtualParticles() {
 	std::vector<glm::vec3> PB;
 	PB.resize(m_options.nrOfParticles[PARTICLETYPE::REAL]+ m_options.nrOfParticles[PARTICLETYPE::BOUNDARY],glm::vec3(0.f));
 
-	float Min_smR = 10;
+	float Max_smR = 0;
 	for (auto*& i : SPH.Particles) {
-		if (i->m_SmR < Min_smR)
-			Min_smR = i->m_SmR;
+		if (i->m_SmR > Max_smR)
+			Max_smR = i->m_SmR;
 	}
-	setStatMinScale(Min_smR);
-	Min_smR *= m_options.smoothingKernelLengthCoefficient;
+	setStatMinScale(Max_smR);
+	Max_smR *= m_options.smoothingKernelLengthCoefficient;
 	int VirtualParticleCount = 0;
 
 	for (auto*& i : SPH.ParticlePairs) {
@@ -1380,7 +1401,7 @@ void SPH_CD::creatingVirtualParticles() {
 		}
 		//std::cout << VCcondition << "\n";
 		//if ((distance <= Max_smR) and !(SPH.Particles[real_p->m_id]->VirtualCounterpart)) {
-		if ((distance <= 2.0*Min_smR) and !(VCcondition)) {
+		if ((distance <= 2.0*Max_smR) and !(VCcondition)) {
 
 			part_prec_3 virtualVelocity;
 			part_prec_3 virtualPosition;
@@ -1521,6 +1542,7 @@ void SPH_CD::addingVirtualTOPairs() {
 		std::cout << "SPH_CD::addingVirtualTOPairs\n";
 	}
 	int novirtpairs = SPH.ParticlePairs.size();
+	cd_prec mindistance = getStatMinScale();
 	switch (m_options.NBSAlg) {
 	case(NEIGBOURS_SEARCH_ALGORITHM::DIRECT):
 		// Пытаемся избежать лишних пар
@@ -1540,7 +1562,7 @@ void SPH_CD::addingVirtualTOPairs() {
 						continue;
 					if (i_p->distance(j_p) <= m_options.smoothingKernelLengthCoefficient * i_p->m_SmR) {
 						//std::cout << i_p->m_id << "    " << j_p->m_id << "\n";
-						SPH.ParticlePairs.push_back(new ParticlePair(i_p, j_p, nrOfDim));
+						SPH.ParticlePairs.push_back(new ParticlePair(i_p, j_p, nrOfDim, mindistance));
 					}
 				}
 				//j_p = nullptr;
@@ -1554,11 +1576,12 @@ void SPH_CD::addingVirtualTOPairs() {
 			Particle* i_p = SPH.Particles[i];
 			UG->addPoint(i_p);
 		}
- 		UG->addingVirtualParticles(SPH.ParticlePairs, m_options.smoothingKernelLengthCoefficient, nrOfDim);
+ 		UG->addingVirtualParticles(SPH.ParticlePairs, m_options.smoothingKernelLengthCoefficient, nrOfDim, mindistance);
 		break;
 	default:
 		break;
 	}
+	setStatMinScale(mindistance);
 
 
 
@@ -1767,10 +1790,6 @@ SPH_CD::~SPH_CD() {
 
 
 bool SPH_CD::ColoringCondition(Particle& p) {
-	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
-		std::cout << "SPH_CD::ColoringCondition\n";
-	}
-
 
 	std::string particlesToColor = getColoParticles();
 	if (particlesToColor == "R") { return (p.m_type == REAL); }
@@ -3676,49 +3695,10 @@ void SPH_CD::PPC_CorSPH_vec(ParticlePair* pp, std::vector<std::vector<part_prec>
 	}
 }
 
-
-void SPH_CD::RenormFactorCalc(std::vector<part_prec>* gamma, ParticlePair * pp) {
-	(*gamma)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
-	(*gamma)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val *pp->W(pp->NBpart_ptr);
-
-	//if (pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr) != 0) {
-	//	std::cout << pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr)<< " \n";
-	//}
-	//std::cout << drhodt[i->m_id] << "   " << gamma[i->m_id] << "   " << i->m_density.val << "   " << dot(gamma_deriv[i->m_id], i->m_velocity.val) << "\n";
-}
-void SPH_CD::RenormFactorDerivCalc(std::vector<part_prec_3>* gamma_deriv, ParticlePair * pp) {
-	(*gamma_deriv)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->vec_e(pp->Mpart_ptr) * pp->dWd(R, pp->Mpart_ptr);
-	(*gamma_deriv)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val *pp->vec_e(pp->NBpart_ptr) *pp->dWd(R, pp->NBpart_ptr);
-}
-
 void SPH_CD::DensityDiffusiveTerm(std::vector<part_prec>* drhodt, ParticlePair * pp) {
 	(*drhodt)[pp->Mpart_ptr->m_id] += dot((static_cast<part_prec>(2.0)*(pp->Mpart_ptr->m_density.val - pp->NBpart_ptr->m_density.val) / pp->Mpart_ptr->distance(pp->NBpart_ptr)*pp->vec_e(pp->Mpart_ptr)),(pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr)))*(pp->NBpart_ptr->m_mass)/(pp->NBpart_ptr->m_density.val);
 	(*drhodt)[pp->NBpart_ptr->m_id] += dot((static_cast<part_prec>(2.0)*(pp->NBpart_ptr->m_density.val - pp->Mpart_ptr->m_density.val) / pp->NBpart_ptr->distance(pp->Mpart_ptr)*pp->vec_e(pp->NBpart_ptr)), (pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr)))*(pp->Mpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val);
 }
-
-void SPH_CD::RenormPressurePartCalculation(std::vector<part_prec_3>* dvdt, ParticlePair * pp) {
-	switch (m_options.velocityChangeAlgorithm_pressurePart) {
-	case(0):
-		// k=0
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-		break;
-	case(1):
-		// k=1
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-		(*dvdt)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-		break;
-	case(2):
-		// k=2
-		(*dvdt)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-		(*dvdt)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-		break;
-	default:
-		break;
-	}
-	
-}
-
 
 void SPH_CD::DensityRecalculation() {
 	std::vector<part_prec> drhodt;
@@ -3833,7 +3813,6 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 	if (m_options.boundary_handling == RENORMALIZATION) {
 		gamma.resize(SPH.Particles.size(), 0.f);
 		gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
-		std::cout << "Renormalization\n";
 		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
 			//m_options.ContinuityEquation->Calc(&drhodt, i);
@@ -3953,6 +3932,9 @@ float SPH_CD::getGlobalStats(int number)
 	case(2):
 		return static_cast<float>(getNrOfParticles(VIRTUAL));
 		break;
+	case(3):
+		return static_cast<float>(SPH.ParticlePairs.size());
+		break;
 	default:
 		return 0;
 		break;
@@ -3978,6 +3960,23 @@ std::string SPH_CD::getLocalStats(int number) {
 		if (nrOfDim > 2) { stats << ", " << std::to_string(SPH.Particles[number]->m_velocity.val.z); }
 		stats << "}\n";
 		stats << "Smoothing radius:" << std::to_string(SPH.Particles[number]->m_SmR) << ", Density:" << std::to_string(SPH.Particles[number]->m_density.val) << ", Mass:" << std::to_string(SPH.Particles[number]->m_mass) << "\n";
+		stats << "Pressure:" << std::to_string(SPH.Particles[number]->m_pressure) << ", Temperature:" << std::to_string(SPH.Particles[number]->m_Temperature) << ", Dynamic viscosity:" << std::to_string(SPH.Particles[number]->m_DVisc) << "\n";
+		stats << "Correctiona factors: gamma - " << std::to_string(SPH.Particles[number]->gamma);
+		stats << ", gradient(gamma):{";
+		if (nrOfDim > 0) { stats << std::to_string(SPH.Particles[number]->grad_gamma.x); }
+		if (nrOfDim > 1) { stats << ", " << std::to_string(SPH.Particles[number]->grad_gamma.y); }
+		if (nrOfDim > 2) { stats << ", " << std::to_string(SPH.Particles[number]->grad_gamma.z); }
+		stats << "}\n";
+		stats << "Time derivatives:\n";
+		stats << "dr/dt:{";
+		if (nrOfDim > 0) { stats << std::to_string(SPH.Particles[number]->m_position.dval.x); }
+		if (nrOfDim > 1) { stats << ", " << std::to_string(SPH.Particles[number]->m_position.dval.y); }
+		if (nrOfDim > 2) { stats << ", " << std::to_string(SPH.Particles[number]->m_position.dval.z); }
+		stats << "} , dv/dt:{";
+		if (nrOfDim > 0) { stats << std::to_string(SPH.Particles[number]->m_velocity.dval.x); }
+		if (nrOfDim > 1) { stats << ", " << std::to_string(SPH.Particles[number]->m_velocity.dval.y); }
+		if (nrOfDim > 2) { stats << ", " << std::to_string(SPH.Particles[number]->m_velocity.dval.z); }
+		stats << "}" << ", d(rho)/dt:" << std::to_string(SPH.Particles[number]->m_density.dval) << "\n";
 		stats << "Number of neighboirs: " << std::to_string(SPH.Particles[number]->nrOfNeighbours) << "\n";
 	}
 	else {

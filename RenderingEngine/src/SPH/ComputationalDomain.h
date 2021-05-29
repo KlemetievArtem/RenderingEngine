@@ -80,6 +80,11 @@ public:
 class Equation;
 class TimeEquation;
 
+
+#include "ParticlePair.h"
+#include "BoundaryMentor.h"
+#include "UniformTreeGrid.h"
+
 // ѕередавать одни и теже опции в SPH и в пары
 struct SPH_OPTIONS {
 	unsigned int nrOfParticles[ALLTYPES];
@@ -103,7 +108,7 @@ struct SPH_OPTIONS {
 	TIME_INTEGRATION_SCHEME timeIntegrationScheme = SECOND_ORDER_SCEME; // EXPLICIT IMPLICIT SEMI_IMPICIT SECOND_ORDER_SCEME NONE
 
 
-	BOUNDARY_HANDLING boundary_handling = RENORMALIZATION; // MIRROR_PARTICLES RENORMALIZATION
+	BOUNDARY_HANDLING boundary_handling = MIRROR_PARTICLES; // MIRROR_PARTICLES RENORMALIZATION
 
 	// true  false
 	bool firstCycle = true;
@@ -136,9 +141,6 @@ struct SPH_OPTIONS {
 
 };
 
-#include "ParticlePair.h"
-#include "BoundaryMentor.h"
-#include "UniformTreeGrid.h"
 
 class ConcreteEquation {
 public:
@@ -879,7 +881,12 @@ public:
 		nrOfDim = dim;
 		m_options = options;
 	}
-	void Initilization();
+private:
+	void EquationsInitialization();
+	void RealParticlesInitialization(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
+	void BoundaryParticlesInitialization(std::vector<CD_Boundary*>* activeBoundaries);//(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
+
+	void Initilization(glm::vec3 velocity, std::vector<CD_Boundary*>* activeBoundaries);
 	//void InitialRendering(std::vector<Mesh*>* meshes);
 
 	//void UpdateRendering(std::vector<Model*>* models);
@@ -971,6 +978,7 @@ public:
 	
 
 
+	void FirstMiddleLastCMoutput();
 
 	~SPH_CD();
 

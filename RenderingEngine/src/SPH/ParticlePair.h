@@ -292,7 +292,7 @@ public:
 	typedef part_prec(Particle::*dsmthFunc)(Particle*);
 	typedef part_prec(Particle::*dsmthFuncvec3pos)(glm::vec3);
 
-	ParticlePair(Particle* mpart, Particle* nbpart, DIMENSIONS dim)
+	ParticlePair(Particle* mpart, Particle* nbpart, DIMENSIONS dim, cd_prec &mindistance)
 		: Mpart_ptr(mpart), NBpart_ptr(nbpart), mode(new QuinticSpline()){
 		//std::cout << Mpart_ptr->m_id << "   " << NBpart_ptr->m_id <<"\n";
 
@@ -355,6 +355,10 @@ public:
 			r += dr;
 		}
 		*/
+
+		if (m_distance < mindistance)
+			mindistance = m_distance;
+
 	}
 
 

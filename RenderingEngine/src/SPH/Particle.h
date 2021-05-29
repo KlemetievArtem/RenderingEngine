@@ -81,8 +81,8 @@ public:
 		//VirtualCounterpartFlags.resize(0);
 	}
 
-	ÑD_Boundary* particle_boundary;
-	void assignToBoundary(ÑD_Boundary* cd_boundaty) { particle_boundary = cd_boundaty; }
+	CD_Boundary* particle_boundary;
+	void assignToBoundary(CD_Boundary* cd_boundaty) { particle_boundary = cd_boundaty; }
 
 	part_prec dx(Particle* other) { return this->m_position.val.x - other->m_position.val.x; }
 	part_prec dy(Particle* other) { return this->m_position.val.y - other->m_position.val.y; }

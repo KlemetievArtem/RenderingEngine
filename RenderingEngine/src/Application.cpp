@@ -719,9 +719,11 @@ void Application::render() {
 
 	for (auto*&i : this->ComputationalDomains) {
 		ImGui::Text("Particles in simulation: Real %.0f , Boundary %.0f , Virtual %.0f ", i->getGlobalStats(0), i->getGlobalStats(1), i->getGlobalStats(2));
+		ImGui::Text("Particl pairs created: %.0f ", i->getGlobalStats(3));
 	}
 	for (auto*&i : this->ComputationalDomains) {
 		ImGui::Text("Time %.5f ", i->getCurrentTime());
+		ImGui::Text("Time = %.5f , Time step = %.9f , Minimal scale = %.9f", i->getCurrentTime(), i->getDeltaTime(), i->getStatMinScale());
 	}
 	ImGui::InputText(" - Particles to color", app_coloringPart, 10);
 	for (auto*&i : this->ComputationalDomains) {
@@ -999,8 +1001,14 @@ void Application::CompDomainInit() {
 	for (auto*&i : this->ComputationalDomains) {
 
 		i->setInitialDeltaTime(0.000005);
+		i->setXminTo(0.f);
+		i->setXmaxTo(1.f);
+		i->setYminTo(0.f);
+		i->setYmaxTo(1.f);
+		i->setZminTo(0.f);
+		i->setZmaxTo(1.f);
 
-		std::vector<ÑD_Boundary*> Boundaries;
+		std::vector<CD_Boundary*> Boundaries;
 		std::vector<Mesh*> meshes;
 		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::X, Quad::PLUS), (i->getYmax() - i->getYmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
 		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
@@ -1025,14 +1033,14 @@ void Application::CompDomainInit() {
 		int count = 0;
 
 		//Boundaries.push_back(new ÑD_Boundary(meshes[0], meshes[2]));
-		Boundaries.push_back(new ÑD_Boundary(meshes[0], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0f));   //ËÅÂÎ
+		Boundaries.push_back(new CD_Boundary(meshes[0], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0f));   //ËÅÂÎ
 
-		Boundaries.push_back(new ÑD_Boundary(meshes[1], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0));   //ÍÈÇ
+		Boundaries.push_back(new CD_Boundary(meshes[1], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0));   //ÍÈÇ
 
 		//Boundaries.push_back(new ÑD_Boundary(meshes[2], meshes[0]));
-		Boundaries.push_back(new ÑD_Boundary(meshes[2], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_Y, 0.0f));   //ÏÐÀÂÎ
+		Boundaries.push_back(new CD_Boundary(meshes[2], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_Y, 0.0f));   //ÏÐÀÂÎ
 		
-		Boundaries.push_back(new ÑD_Boundary(meshes[3], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 1.0f));   //ÂÅÐÕ
+		Boundaries.push_back(new CD_Boundary(meshes[3], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 1.0f));   //ÂÅÐÕ
 
 
 		for (auto* j : meshes) {
@@ -1050,7 +1058,11 @@ void Application::CompDomainInit() {
 		if ((application_mode == MODE::RUNNING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) {
 			BoundaryMeshing(i);
 		}
-		i->Initilization();
+
+
+		glm::vec3 InitialVelocity(0.0f, 0.f, 0.f);
+		i->Initilization(InitialVelocity, &Boundaries);
+
 		i->assignPresetModels(this->models.size());
 		i->assignPresetMaterials(this->materials.size());
 
