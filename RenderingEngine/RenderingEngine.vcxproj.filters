@@ -129,6 +129,9 @@
     <ClInclude Include="src\SPH\EquationClasses.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="src\SPH\ConcreteEquationClasses.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

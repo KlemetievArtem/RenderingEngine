@@ -1,555 +1,706 @@
 #pragma once
 
-class K0_ContinuityEquation_dval : public ConcreteEquation {
+class ConcreteEquation {
 public:
-	K0_ContinuityEquation_dval() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val*glm::dot(pp->Mpart_ptr->dV(pp->NBpart_ptr), pp->dWd(R, pp->Mpart_ptr)*pp->vec_e(pp->Mpart_ptr));
+	virtual void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) = 0;
+	void Calc(std::vector<part_prec>* val, ParticlePair * pp, PAIR_INTERACTION_TYPE pit) {
+		switch (pit) {
+		case PIT_MAIN:
+			this->Func(val, pp, PPN_MAIN);
 			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val*glm::dot(pp->NBpart_ptr->dV(pp->Mpart_ptr), pp->dWd(R, pp->NBpart_ptr)*pp->vec_e(pp->NBpart_ptr));
+		case PIT_NEIGHBOUR:
+			this->Func(val, pp, PPN_NEIGHBOUR);
+			break;
+		case PIT_BOTH:
+			this->Func(val, pp, PPN_MAIN);
+			this->Func(val, pp, PPN_NEIGHBOUR);
+			break;
+		case PIT_NONE:
+			break;
+		default:
+			break;
+		}
+	}
+	virtual void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) = 0;
+	void Calc(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PAIR_INTERACTION_TYPE pit) {
+		switch (pit) {
+		case PIT_MAIN:
+			this->Func(vector_val, pp, dim, PPN_MAIN);
+			break;
+		case PIT_NEIGHBOUR:
+			this->Func(vector_val, pp, dim, PPN_NEIGHBOUR);
+			break;
+		case PIT_BOTH:
+			this->Func(vector_val, pp, dim, PPN_MAIN);
+			this->Func(vector_val, pp, dim, PPN_NEIGHBOUR);
+			break;
+		case PIT_NONE:
 			break;
 		default:
 			break;
 		}
 	}
 
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override { 
-		assert("K0_ContinuityEquation_dval::wrong_func" && 0);
-	}
 };
-
-class K1_ContinuityEquation_dval : public ConcreteEquation {
+class ConcreteTimeUpdateEquation {
 public:
-	K1_ContinuityEquation_dval() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass * glm::dot(pp->Mpart_ptr->dV(pp->NBpart_ptr), pp->dWd(R, pp->Mpart_ptr)* pp->vec_e(pp->Mpart_ptr));
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass * glm::dot(pp->NBpart_ptr->dV(pp->Mpart_ptr), pp->dWd(R, pp->NBpart_ptr)*pp->vec_e(pp->NBpart_ptr));
-			break;
-		default:
-			break;
+	virtual void FuncT(Particle* p, part_prec t) = 0;
+	void Calc(Particle* p, part_prec t) {
+		this->FuncT(p, t);
+	}
+
+	virtual void FuncT(Particle* p, part_prec_3 val) = 0;
+	void Calc3(Particle* p, part_prec_3 val) {
+		this->FuncT(p, val);
+	}
+
+};
+class TimeEquation : public EquationsBuilder {
+public:
+	TimeEquation(ConcreteTimeUpdateEquation* t) : _concreteEquation(t) { }
+	void changeConcreteEquation(ConcreteTimeUpdateEquation* t) {
+		delete _concreteEquation;
+		_concreteEquation = t;
+	}
+	void Calc(Particle* p, cd_prec t) {
+		if (ParticleTypesInUse == 1) {
+			if (usedParticlesActivity[0] == ACTIVE) {
+				if (p->m_type == usedParticles[0]) {
+					if (_concreteEquation != nullptr) _concreteEquation->Calc(p, t);
+				}
+			}
+		}
+		if (ParticleTypesInUse == 2) {
+			bool condition = false;
+			for (int k = 0; k < ParticleTypesInUse; k++) {
+				if (usedParticlesActivity[k] == ACTIVE) {
+					condition = condition or (p->m_type == usedParticlesActivity[k]);
+				}
+				else if (usedParticlesActivity[k] == PASSIVE) {
+					condition = condition and (p->m_type == usedParticlesActivity[k]);
+				}
+			}
+			if (condition) {
+				if (_concreteEquation != nullptr) _concreteEquation->Calc(p, t);
+			}
+		}
+	}
+	void Calc(Particle* p, part_prec_3 val) {
+		if (ParticleTypesInUse == 1) {
+			if (usedParticlesActivity[0] == ACTIVE) {
+				if (p->m_type == usedParticles[0]) {
+					if (_concreteEquation != nullptr) _concreteEquation->Calc3(p, val);
+				}
+			}
+		}
+		if (ParticleTypesInUse == 2) {
+			bool condition = false;
+			for (int k = 0; k < ParticleTypesInUse; k++) {
+				if (usedParticlesActivity[k] == ACTIVE) {
+					condition = condition or (p->m_type == usedParticlesActivity[k]);
+				}
+				else if (usedParticlesActivity[k] == PASSIVE) {
+					condition = condition and (p->m_type == usedParticlesActivity[k]);
+				}
+			}
+			if (condition) {
+				if (_concreteEquation != nullptr) _concreteEquation->Calc3(p, val);
+			}
 		}
 	}
 
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K1_ContinuityEquation_dval::wrong_func" && 0);
+	ConcreteTimeUpdateEquation* _concreteEquation;
+	~TimeEquation() {
+		delete _concreteEquation;
 	}
 };
+//  LOGIC CUALITY OF LIFE (SPH.ParticlePairs-loop)
+// MAIN PARTICLE IS 
+#define PPL_MAIN_PARTICLE_IS(type) (i->Mpart_ptr->m_type == type)
+#define PPL_MAIN_PARTICLE_IS_NOT(type) (i->Mpart_ptr->m_type != type)
+	// NEIGBOUR PARTICLE IS 
+#define PPL_NEIGHBOUR_PARTICLE_IS(type) (i->NBpart_ptr->m_type == type)
+#define PPL_NEIGHBOUR_PARTICLE_IS_NOT(type) (i->NBpart_ptr->m_type != type)
 
-class K2_ContinuityEquation_dval : public ConcreteEquation {
+
+#define PPL_BOTH_PARTICLES_ARE(type) ((i->NBpart_ptr->m_type == type) and (i->Mpart_ptr->m_type == type))
+#define PPL_BOTH_PARTICLES_ARE_NOT(type) ((i->NBpart_ptr->m_type != type) and (i->Mpart_ptr->m_type != type))
+
+#define PPL_ONE_OF_PARTICLE_IS_1_OTHER_IS_2(type1,type2) (((i->NBpart_ptr->m_type == type1) and (i->Mpart_ptr->m_type == type2)) or ((i->NBpart_ptr->m_type == type2) and (i->Mpart_ptr->m_type == type1)))
+
+
+class Equation : public EquationsBuilder {
 public:
-	K2_ContinuityEquation_dval() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val*glm::dot(pp->Mpart_ptr->dV(pp->NBpart_ptr), pp->dWd(R, pp->Mpart_ptr)*pp->vec_e(pp->Mpart_ptr));
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val*glm::dot(pp->NBpart_ptr->dV(pp->Mpart_ptr), pp->dWd(R, pp->NBpart_ptr)*pp->vec_e(pp->NBpart_ptr));
-			break;
-		default:
-			break;
+	Equation(ConcreteEquation* c) : _concreteEquation(c) { }
+	void changeConcreteEquation(ConcreteEquation* c) {
+		delete _concreteEquation;
+		_concreteEquation = c;
+	}
+
+	void Calc(std::vector<part_prec>* val, ParticlePair* i) {
+		if (_concreteEquation == nullptr) assert("Equation::_concreteEquation==" && 0);
+		PAIR_INTERACTION_TYPE interactionType;
+		if (ParticleTypesInUse == 1) {
+			switch (usedParticlesActivity[0]) {
+			case(ACTIVE):
+				//std::cout << "A    ";
+				interactionType = PIT_BOTH;
+				break;
+			case(REACTIVE):
+				//std::cout << "R    ";
+				interactionType = PIT_NONE;
+				break;
+			case(PASSIVE):
+				//std::cout << "P    ";
+				interactionType = PIT_NONE;
+				break;
+			default:
+				break;
+			}
+			_concreteEquation->Calc(val, i, interactionType);
+			//std::cout << i->Mpart_ptr->m_type << "  " << i->NBpart_ptr->m_type << "  " << interactionType << "\n";
+		}
+		else if (ParticleTypesInUse == 2) {
+			bool exit_condition = false;
+			for (int k = 0; k < ParticleTypesInUse; k++) {
+				if (exit_condition) break;
+				switch (usedParticlesActivity[k]) {
+				case(ACTIVE):
+					//std::cout << "ACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A A    ";
+								interactionType = PIT_BOTH;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(REACTIVE):
+					//std::cout << "REACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "R A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "R R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							//std::cout << "R P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(PASSIVE):
+					//std::cout << "PASSIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "P A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "P R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							//std::cout << "P P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			_concreteEquation->Calc(val, i, interactionType);
+		}
+		else if (ParticleTypesInUse == 3) {
+			bool exit_condition = false;
+			for (int k = 0; k < ParticleTypesInUse; k++) {
+				if (exit_condition) break;
+				switch (usedParticlesActivity[k]) {
+				case(ACTIVE):
+					//std::cout << "ACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A A    ";
+								interactionType = PIT_BOTH;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(REACTIVE):
+					//std::cout << "REACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "R A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "R R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							//std::cout << "R P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(PASSIVE):
+					//std::cout << "PASSIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "P A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "P R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							//std::cout << "P P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			_concreteEquation->Calc(val, i, interactionType);
 		}
 	}
 
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K2_ContinuityEquation_dval::wrong_func" && 0);
-	}
-};
-
-
-class K0_ContinuityEquation_val : public ConcreteEquation {
-public:
-	K0_ContinuityEquation_val() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass * pp->Mpart_ptr->m_density.val / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass * pp->NBpart_ptr->m_density.val / pp->Mpart_ptr->m_density.val *pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
+	void Calc(std::vector<part_prec_3>* vector_val, ParticlePair* i, DIMENSIONS dim) {
+		if (_concreteEquation == nullptr) assert("Equation::_concreteEquation==" && 0);
+		PAIR_INTERACTION_TYPE interactionType;
+		if (ParticleTypesInUse == 1) {
+			switch (usedParticlesActivity[0]) {
+			case(ACTIVE):
+				//std::cout << "A    ";
+				interactionType = PIT_BOTH;
+				break;
+			case(REACTIVE):
+				//std::cout << "R    ";
+				interactionType = PIT_NONE;
+				break;
+			case(PASSIVE):
+				//std::cout << "P    ";
+				interactionType = PIT_NONE;
+				break;
+			default:
+				break;
+			}
+			_concreteEquation->Calc(vector_val, i, dim, interactionType);
 		}
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K0_ContinuityEquation_val::wrong_func" && 0);
-	}
-};
-
-class K1_ContinuityEquation_val : public ConcreteEquation {
-public:
-	K1_ContinuityEquation_val() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass * pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
+		else if (ParticleTypesInUse == 2) {
+			bool exit_condition = false;
+			for (int k = 0; k < ParticleTypesInUse; k++) {
+				if (exit_condition) break;
+				switch (usedParticlesActivity[k]) {
+				case(ACTIVE):
+					//std::cout << "ACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A A    ";
+								interactionType = PIT_BOTH;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(REACTIVE):
+					//std::cout << "REACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "R A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "R R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							//std::cout << "R P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
+							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(PASSIVE):
+					//std::cout << "PASSIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "P A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "P R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
+							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
+							break;
+						case(PASSIVE):
+							//std::cout << "P P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			_concreteEquation->Calc(vector_val, i, dim, interactionType);
 		}
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K1_ContinuityEquation_val::wrong_func" && 0);
-	}
-};
-
-class K2_ContinuityEquation_val : public ConcreteEquation {
-public:
-	K2_ContinuityEquation_val() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass * pp->NBpart_ptr->m_density.val / pp->Mpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass * pp->Mpart_ptr->m_density.val / pp->NBpart_ptr->m_density.val *pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
+		else if (ParticleTypesInUse == 3) {
+			bool exit_condition = false;
+			for (int k = 0; k < ParticleTypesInUse; k++) {
+				if (exit_condition) break;
+				switch (usedParticlesActivity[k]) {
+				case(ACTIVE):
+					//std::cout << "ACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A A    ";
+								interactionType = PIT_BOTH;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A R    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//std::cout << "A P    ";
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(REACTIVE):
+					//std::cout << "REACTIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "R A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "R R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						case(PASSIVE):
+							//std::cout << "R P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
+							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				case(PASSIVE):
+					//std::cout << "PASSIVE ";
+					for (int kk = k; kk < ParticleTypesInUse; kk++) {
+						switch (usedParticlesActivity[kk]) {
+						case(ACTIVE):
+							//std::cout << "P A    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
+							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
+							break;
+						case(REACTIVE):
+							//std::cout << "P R    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
+							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
+							break;
+						case(PASSIVE):
+							//std::cout << "P P    ";
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+								interactionType = PIT_NONE;
+								exit_condition = true;
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			_concreteEquation->Calc(vector_val, i, dim, interactionType);
 		}
+		//std::cout << i->Mpart_ptr->m_type << "  " << i->NBpart_ptr->m_type << "  " << interactionType << "\n";
 	}
 
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K2_ContinuityEquation_val::wrong_func" && 0);
-	}
 
-};
-
-
-
-class Empty_Function : public ConcreteEquation {
-public:
-	Empty_Function() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override { }
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override { }
-};
-
-
-class K0_VelPressurePart_dval : public ConcreteEquation {
-public:
-	K0_VelPressurePart_dval() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K0_VelPressurePart_dval::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure + pp->NBpart_ptr->m_pressure)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure + pp->Mpart_ptr->m_pressure)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-		
-		
-	}
-};
-
-class K1_VelPressurePart_dval : public ConcreteEquation {
-public:
-	K1_VelPressurePart_dval() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K1_VelPressurePart_dval::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) + pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2))*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) + pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2))*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}		
-	}
-};
-
-class K2_VelPressurePart_dval : public ConcreteEquation {
-public:
-	K2_VelPressurePart_dval() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K2_VelPressurePart_dval::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) + pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3))*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) + pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3))*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
+	ConcreteEquation* _concreteEquation;
+	~Equation() {
+		delete _concreteEquation;
 	}
 };
 
 
 
-
-
-
-class K0_VelViscosityPart_dval : public ConcreteEquation {
-public:
-	K0_VelViscosityPart_dval() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K0_VelViscosityPart_dval::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (static_cast<part_prec>(2.0)*pp->Mpart_ptr->m_DVisc)*pp->Mpart_ptr->dV(pp->NBpart_ptr) / (pp->getDist())*pp->dWd(R, pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (static_cast<part_prec>(2.0)*pp->NBpart_ptr->m_DVisc)*pp->Mpart_ptr->dV(pp->Mpart_ptr) / (pp->getDist())*pp->dWd(R, pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-};
-
-class K1_VelViscosityPart_dval : public ConcreteEquation {
-public:
-	K1_VelViscosityPart_dval() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K1_VelViscosityPart_dval::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (static_cast<part_prec>(2.0)*pp->Mpart_ptr->m_DVisc)*static_cast<part_prec>(dim + 2)*glm::dot(pp->Mpart_ptr->dV(pp->NBpart_ptr), pp->vec_e(pp->Mpart_ptr)) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val*pp->getDist())*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (static_cast<part_prec>(2.0)*pp->NBpart_ptr->m_DVisc)*static_cast<part_prec>(dim + 2)*glm::dot(pp->Mpart_ptr->dV(pp->Mpart_ptr), pp->vec_e(pp->NBpart_ptr)) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val*pp->getDist())*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-};
-
-class K2_VelViscosityPart_dval : public ConcreteEquation {
-public:
-	K2_VelViscosityPart_dval() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("K2_VelViscosityPart_dval::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += ((pp->Mpart_ptr->m_DVisc + pp->NBpart_ptr->m_DVisc)) / (static_cast<part_prec>(2.0)*pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val*pp->getDist())*(static_cast<part_prec>(dim + 2)*glm::dot(pp->Mpart_ptr->dV(pp->NBpart_ptr), pp->vec_e(pp->Mpart_ptr))*pp->vec_e(pp->Mpart_ptr) + pp->Mpart_ptr->dV(pp->NBpart_ptr))*pp->dWd(R, pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += ((pp->NBpart_ptr->m_DVisc + pp->Mpart_ptr->m_DVisc)) / (static_cast<part_prec>(2.0)*pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val*pp->getDist())*(static_cast<part_prec>(dim + 2)*glm::dot(pp->NBpart_ptr->dV(pp->Mpart_ptr), pp->vec_e(pp->NBpart_ptr))*pp->vec_e(pp->NBpart_ptr) + pp->NBpart_ptr->dV(pp->Mpart_ptr))*pp->dWd(R, pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-};
-
-
-
-class CorrectionFactor : public ConcreteEquation {
-public:
-	CorrectionFactor() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val * pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("CorrectionFactor::wrong_func" && 0);
-	}
-};
-
-
-
-
-
-
-
-class DensityUpdate_VAL : public ConcreteTimeUpdateEquation {
-public:
-	DensityUpdate_VAL() {};
-
-	void FuncT(Particle* p, part_prec t) override {
-		p->m_density.val = p->m_density.dval;
-	}
-	void FuncT(Particle* p, part_prec_3 val) override { }
-};
-
-class DensityUpdate_DVAL : public ConcreteTimeUpdateEquation {
-public:
-	DensityUpdate_DVAL() {};
-
-	void FuncT(Particle* p, part_prec t) override {
-		p->m_density.val += p->m_density.dval * t;
-	}
-	void FuncT(Particle* p, part_prec_3 val) override { }
-};
-
-
-
-class VelocityUpdate_VAL : public ConcreteTimeUpdateEquation {
-public:
-	VelocityUpdate_VAL() {};
-
-	void FuncT(Particle* p, part_prec t) override {
-		p->m_velocity.val = p->m_velocity.dval;
-	}
-	void FuncT(Particle* p, part_prec_3 val) override { }
-
-};
-
-class VelocityUpdate_DVAL : public ConcreteTimeUpdateEquation {
-public:
-	VelocityUpdate_DVAL() {};
-
-	void FuncT(Particle* p, part_prec t) override {
-		p->m_velocity.val += p->m_velocity.dval * t;
-	}
-	void FuncT(Particle* p, part_prec_3 val) override { }
-};
-
-
-
-class PositionUpdate_add : public ConcreteTimeUpdateEquation {
-public:
-	PositionUpdate_add() {};
-
-	void FuncT(Particle* p, part_prec t) override { }
-
-	void FuncT(Particle* p, part_prec_3 val) override {
-		p->m_position.val += val;
-	}
-};
-
-
-
-
-
-
-
-class BoundaryDensityUpdate_VAL : public ConcreteEquation {
-public:
-	BoundaryDensityUpdate_VAL() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass * pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("BoundaryDensityUpdate_VAL::wrong_func" && 0);
-	}
-};
-class BoundaryVelocityUpdate_VAL : public ConcreteEquation {
-public:
-	BoundaryVelocityUpdate_VAL() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("BoundaryVelocityUpdate_VAL::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn){
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_velocity.val * pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_velocity.val * pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val * pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-};
-class BoundaryCorrection : public ConcreteEquation {
-public:
-	BoundaryCorrection() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val * pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("BoundaryCorrection::wrong_func" && 0);
-	}
-};
-
-
-//RENORMALIZATION
-
-
-class RenormalizationFactors : public ConcreteEquation {
-public:
-	RenormalizationFactors() {};
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->W(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val *pp->W(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += pp->NBpart_ptr->m_mass / pp->NBpart_ptr->m_density.val * pp->vec_e(pp->Mpart_ptr) * pp->dWd(R, pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += pp->Mpart_ptr->m_mass / pp->Mpart_ptr->m_density.val *pp->vec_e(pp->NBpart_ptr) *pp->dWd(R, pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-};
-
-
-
-class Renormalization_K0_VelPressurePart : public ConcreteEquation {
-public:
-	Renormalization_K0_VelPressurePart() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("Renormalization_K0_VelPressurePart::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass) / (pp->Mpart_ptr->m_density.val*pp->NBpart_ptr->m_density.val)*(pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass) / (pp->NBpart_ptr->m_density.val*pp->Mpart_ptr->m_density.val)*(pp->NBpart_ptr->m_pressure / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-
-
-	}
-};
-class Renormalization_K1_VelPressurePart : public ConcreteEquation {
-public:
-	Renormalization_K1_VelPressurePart() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("Renormalization_K1_VelPressurePart::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure / pow(pp->NBpart_ptr->m_density.val, 2) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure / pow(pp->Mpart_ptr->m_density.val, 2) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-};
-class Renormalization_K2_VelPressurePart : public ConcreteEquation {
-public:
-	Renormalization_K2_VelPressurePart() {};
-
-	void Func(std::vector<part_prec>* val, ParticlePair * pp, PARTICLEPAIR_NUMERATIN ppn) override {
-		assert("Renormalization_K2_VelPressurePart::wrong_func" && 0);
-	}
-
-	void Func(std::vector<part_prec_3>* vector_val, ParticlePair * pp, DIMENSIONS dim, PARTICLEPAIR_NUMERATIN ppn) override {
-		switch (ppn)
-		{
-		case PPN_MAIN:
-			(*vector_val)[pp->Mpart_ptr->m_id] += (-pp->NBpart_ptr->m_mass)*(pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma + pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma)*pp->dWd(R, pp->Mpart_ptr) * pp->vec_e(pp->Mpart_ptr);
-			break;
-		case PPN_NEIGHBOUR:
-			(*vector_val)[pp->NBpart_ptr->m_id] += (-pp->Mpart_ptr->m_mass)*(pp->NBpart_ptr->m_pressure*pp->Mpart_ptr->m_density.val / pow(pp->NBpart_ptr->m_density.val, 3) / pp->NBpart_ptr->gamma + pp->Mpart_ptr->m_pressure*pp->NBpart_ptr->m_density.val / pow(pp->Mpart_ptr->m_density.val, 3) / pp->Mpart_ptr->gamma)*pp->dWd(R, pp->NBpart_ptr) * pp->vec_e(pp->NBpart_ptr);
-			break;
-		default:
-			break;
-		}
-	}
-};

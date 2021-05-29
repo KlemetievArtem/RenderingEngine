@@ -39,6 +39,7 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Something.h" />
     <ClInclude Include="src\SPH\ComputationalDomain.h" />
+    <ClInclude Include="src\SPH\ConcreteEquationClasses.h" />
     <ClInclude Include="src\SPH\EquationClasses.h" />
     <ClInclude Include="src\SPH\FiniteParticleMethodFULL.h" />
     <ClInclude Include="src\SPH\Particle.h" />
