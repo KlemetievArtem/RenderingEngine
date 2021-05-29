@@ -139,20 +139,29 @@ public:
 
 	void Calc(std::vector<part_prec>* val, ParticlePair* i) {
 		if (_concreteEquation == nullptr) assert("Equation::_concreteEquation==" && 0);
-		PAIR_INTERACTION_TYPE interactionType;
+		PAIR_INTERACTION_TYPE interactionType = PIT_NONE;
 		if (ParticleTypesInUse == 1) {
 			switch (usedParticlesActivity[0]) {
 			case(ACTIVE):
 				//std::cout << "A    ";
-				interactionType = PIT_BOTH;
+				if ((i->Mpart_ptr->m_type == usedParticles[0]) and (i->NBpart_ptr->m_type == usedParticles[0])) {
+					interactionType = PIT_BOTH;
+					break;
+				}
 				break;
 			case(REACTIVE):
 				//std::cout << "R    ";
-				interactionType = PIT_NONE;
+				if ((i->Mpart_ptr->m_type == usedParticles[0]) and (i->NBpart_ptr->m_type == usedParticles[0])) {
+					interactionType = PIT_NONE;
+					break;
+				}
 				break;
 			case(PASSIVE):
 				//std::cout << "P    ";
-				interactionType = PIT_NONE;
+				if ((i->Mpart_ptr->m_type == usedParticles[0]) and (i->NBpart_ptr->m_type == usedParticles[0])) {
+					interactionType = PIT_NONE;
+					break;
+				}
 				break;
 			default:
 				break;
@@ -170,7 +179,8 @@ public:
 					for (int kk = k; kk < ParticleTypesInUse; kk++) {
 						switch (usedParticlesActivity[kk]) {
 						case(ACTIVE):
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+								((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
 								//std::cout << "A A    ";
 								interactionType = PIT_BOTH;
 								exit_condition = true;
@@ -182,7 +192,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//std::cout << "A R    ";
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
@@ -194,7 +204,7 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//std::cout << "A P    ";
 								interactionType = PIT_MAIN;
 								exit_condition = true;
@@ -215,14 +225,15 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
 							break;
 						case(REACTIVE):
 							//std::cout << "R R    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+								((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
 								interactionType = PIT_NONE;
 								exit_condition = true;
 							}
@@ -234,7 +245,7 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//interactionType = PIT_NONE;
 								interactionType = PIT_MAIN;
 								exit_condition = true;
@@ -255,7 +266,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
@@ -267,7 +278,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//interactionType = PIT_NONE;
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
@@ -275,7 +286,8 @@ public:
 							break;
 						case(PASSIVE):
 							//std::cout << "P P    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k]) or
+								(i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk])) {
 								interactionType = PIT_NONE;
 								exit_condition = true;
 							}
@@ -290,6 +302,7 @@ public:
 				}
 			}
 			_concreteEquation->Calc(val, i, interactionType);
+			//std::cout << i->Mpart_ptr->m_type << "  " << i->NBpart_ptr->m_type << "  " << interactionType << "\n";
 		}
 		else if (ParticleTypesInUse == 3) {
 			bool exit_condition = false;
@@ -301,7 +314,8 @@ public:
 					for (int kk = k; kk < ParticleTypesInUse; kk++) {
 						switch (usedParticlesActivity[kk]) {
 						case(ACTIVE):
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+								((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
 								//std::cout << "A A    ";
 								interactionType = PIT_BOTH;
 								exit_condition = true;
@@ -313,7 +327,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//std::cout << "A R    ";
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
@@ -325,7 +339,7 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//std::cout << "A P    ";
 								interactionType = PIT_MAIN;
 								exit_condition = true;
@@ -346,14 +360,15 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
 							break;
 						case(REACTIVE):
 							//std::cout << "R R    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+								((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
 								interactionType = PIT_NONE;
 								exit_condition = true;
 							}
@@ -365,7 +380,7 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//interactionType = PIT_NONE;
 								interactionType = PIT_MAIN;
 								exit_condition = true;
@@ -386,7 +401,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
@@ -398,7 +413,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//interactionType = PIT_NONE;
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
@@ -406,7 +421,8 @@ public:
 							break;
 						case(PASSIVE):
 							//std::cout << "P P    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k]) or
+								(i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk])) {
 								interactionType = PIT_NONE;
 								exit_condition = true;
 							}
@@ -426,25 +442,35 @@ public:
 
 	void Calc(std::vector<part_prec_3>* vector_val, ParticlePair* i, DIMENSIONS dim) {
 		if (_concreteEquation == nullptr) assert("Equation::_concreteEquation==" && 0);
-		PAIR_INTERACTION_TYPE interactionType;
+		PAIR_INTERACTION_TYPE interactionType = PIT_NONE;
 		if (ParticleTypesInUse == 1) {
 			switch (usedParticlesActivity[0]) {
 			case(ACTIVE):
 				//std::cout << "A    ";
-				interactionType = PIT_BOTH;
+				if ((i->Mpart_ptr->m_type == usedParticles[0]) and (i->NBpart_ptr->m_type == usedParticles[0])) {
+					interactionType = PIT_BOTH;
+					break;
+				}
 				break;
 			case(REACTIVE):
 				//std::cout << "R    ";
-				interactionType = PIT_NONE;
+				if ((i->Mpart_ptr->m_type == usedParticles[0]) and (i->NBpart_ptr->m_type == usedParticles[0])) {
+					interactionType = PIT_NONE;
+					break;
+				}
 				break;
 			case(PASSIVE):
 				//std::cout << "P    ";
-				interactionType = PIT_NONE;
+				if ((i->Mpart_ptr->m_type == usedParticles[0]) and (i->NBpart_ptr->m_type == usedParticles[0])) {
+					interactionType = PIT_NONE;
+					break;
+				}
 				break;
 			default:
 				break;
 			}
 			_concreteEquation->Calc(vector_val, i, dim, interactionType);
+			//std::cout << i->Mpart_ptr->m_type << "  " << i->NBpart_ptr->m_type << "  " << interactionType << "\n";
 		}
 		else if (ParticleTypesInUse == 2) {
 			bool exit_condition = false;
@@ -456,7 +482,8 @@ public:
 					for (int kk = k; kk < ParticleTypesInUse; kk++) {
 						switch (usedParticlesActivity[kk]) {
 						case(ACTIVE):
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+								((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
 								//std::cout << "A A    ";
 								interactionType = PIT_BOTH;
 								exit_condition = true;
@@ -468,7 +495,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//std::cout << "A R    ";
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
@@ -480,7 +507,7 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								//std::cout << "A P    ";
 								interactionType = PIT_MAIN;
 								exit_condition = true;
@@ -501,14 +528,15 @@ public:
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
 							break;
 						case(REACTIVE):
 							//std::cout << "R R    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+								((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
 								interactionType = PIT_NONE;
 								exit_condition = true;
 							}
@@ -516,11 +544,15 @@ public:
 						case(PASSIVE):
 							//std::cout << "R P    ";
 							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NONE;
+								//interactionType = PIT_NONE;
+								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
-							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
-							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_MAIN;
+								exit_condition = true;
+							}
 							break;
 						default:
 							break;
@@ -537,7 +569,7 @@ public:
 								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
 								interactionType = PIT_NEIGHBOUR;
 								exit_condition = true;
 							}
@@ -545,15 +577,20 @@ public:
 						case(REACTIVE):
 							//std::cout << "P R    ";
 							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NONE;
+								//interactionType = PIT_NONE;
+								interactionType = PIT_MAIN;
 								exit_condition = true;
 							}
-							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
-							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
+							else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+								//interactionType = PIT_NONE;
+								interactionType = PIT_NEIGHBOUR;
+								exit_condition = true;
+							}
 							break;
 						case(PASSIVE):
 							//std::cout << "P P    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k]) or
+								(i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk])) {
 								interactionType = PIT_NONE;
 								exit_condition = true;
 							}
@@ -568,128 +605,140 @@ public:
 				}
 			}
 			_concreteEquation->Calc(vector_val, i, dim, interactionType);
+			//std::cout << i->Mpart_ptr->m_type << "  " << i->NBpart_ptr->m_type << "  " << interactionType << "\n";
 		}
 		else if (ParticleTypesInUse == 3) {
-			bool exit_condition = false;
-			for (int k = 0; k < ParticleTypesInUse; k++) {
-				if (exit_condition) break;
-				switch (usedParticlesActivity[k]) {
-				case(ACTIVE):
-					//std::cout << "ACTIVE ";
-					for (int kk = k; kk < ParticleTypesInUse; kk++) {
-						switch (usedParticlesActivity[kk]) {
-						case(ACTIVE):
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								//std::cout << "A A    ";
-								interactionType = PIT_BOTH;
-								exit_condition = true;
-							}
-							break;
-						case(REACTIVE):
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								//std::cout << "A R    ";
-								interactionType = PIT_MAIN;
-								exit_condition = true;
-							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
-								//std::cout << "A R    ";
-								interactionType = PIT_NEIGHBOUR;
-								exit_condition = true;
-							}
-							break;
-						case(PASSIVE):
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								//std::cout << "A P    ";
-								interactionType = PIT_NEIGHBOUR;
-								exit_condition = true;
-							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
-								//std::cout << "A P    ";
-								interactionType = PIT_MAIN;
-								exit_condition = true;
-							}
-							break;
-						default:
-							break;
+		bool exit_condition = false;
+		for (int k = 0; k < ParticleTypesInUse; k++) {
+			if (exit_condition) break;
+			switch (usedParticlesActivity[k]) {
+			case(ACTIVE):
+				//std::cout << "ACTIVE ";
+				for (int kk = k; kk < ParticleTypesInUse; kk++) {
+					switch (usedParticlesActivity[kk]) {
+					case(ACTIVE):
+						if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+							((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
+							//std::cout << "A A    ";
+							interactionType = PIT_BOTH;
+							exit_condition = true;
 						}
-					}
-					break;
-				case(REACTIVE):
-					//std::cout << "REACTIVE ";
-					for (int kk = k; kk < ParticleTypesInUse; kk++) {
-						switch (usedParticlesActivity[kk]) {
-						case(ACTIVE):
-							//std::cout << "R A    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NEIGHBOUR;
-								exit_condition = true;
-							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_MAIN;
-								exit_condition = true;
-							}
-							break;
-						case(REACTIVE):
-							//std::cout << "R R    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NONE;
-								exit_condition = true;
-							}
-							break;
-						case(PASSIVE):
-							//std::cout << "R P    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NONE;
-								exit_condition = true;
-							}
-							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
-							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
-							break;
-						default:
-							break;
+						break;
+					case(REACTIVE):
+						if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							//std::cout << "A R    ";
+							interactionType = PIT_MAIN;
+							exit_condition = true;
 						}
-					}
-					break;
-				case(PASSIVE):
-					//std::cout << "PASSIVE ";
-					for (int kk = k; kk < ParticleTypesInUse; kk++) {
-						switch (usedParticlesActivity[kk]) {
-						case(ACTIVE):
-							//std::cout << "P A    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_MAIN;
-								exit_condition = true;
-							}
-							if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NEIGHBOUR;
-								exit_condition = true;
-							}
-							break;
-						case(REACTIVE):
-							//std::cout << "P R    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NONE;
-								exit_condition = true;
-							}
-							//if (i->Mpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_MAIN;
-							//if (i->NBpart_ptr->m_type == usedParticles[kk]) interactionType = PIT_NEIGHBOUR;
-							break;
-						case(PASSIVE):
-							//std::cout << "P P    ";
-							if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
-								interactionType = PIT_NONE;
-								exit_condition = true;
-							}
-							break;
-						default:
-							break;
+						else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							//std::cout << "A R    ";
+							interactionType = PIT_NEIGHBOUR;
+							exit_condition = true;
 						}
+						break;
+					case(PASSIVE):
+						if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							//std::cout << "A P    ";
+							interactionType = PIT_NEIGHBOUR;
+							exit_condition = true;
+						}
+						else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							//std::cout << "A P    ";
+							interactionType = PIT_MAIN;
+							exit_condition = true;
+						}
+						break;
+					default:
+						break;
 					}
-					break;
-				default:
-					break;
 				}
+				break;
+			case(REACTIVE):
+				//std::cout << "REACTIVE ";
+				for (int kk = k; kk < ParticleTypesInUse; kk++) {
+					switch (usedParticlesActivity[kk]) {
+					case(ACTIVE):
+						//std::cout << "R A    ";
+						if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							interactionType = PIT_NEIGHBOUR;
+							exit_condition = true;
+						}
+						else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							interactionType = PIT_MAIN;
+							exit_condition = true;
+						}
+						break;
+					case(REACTIVE):
+						//std::cout << "R R    ";
+						if (((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) or
+							((i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk]))) {
+							interactionType = PIT_NONE;
+							exit_condition = true;
+						}
+						break;
+					case(PASSIVE):
+						//std::cout << "R P    ";
+						if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							//interactionType = PIT_NONE;
+							interactionType = PIT_NEIGHBOUR;
+							exit_condition = true;
+						}
+						else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							//interactionType = PIT_NONE;
+							interactionType = PIT_MAIN;
+							exit_condition = true;
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				break;
+			case(PASSIVE):
+				//std::cout << "PASSIVE ";
+				for (int kk = k; kk < ParticleTypesInUse; kk++) {
+					switch (usedParticlesActivity[kk]) {
+					case(ACTIVE):
+						//std::cout << "P A    ";
+						if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							interactionType = PIT_MAIN;
+							exit_condition = true;
+						}
+						else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							interactionType = PIT_NEIGHBOUR;
+							exit_condition = true;
+						}
+						break;
+					case(REACTIVE):
+						//std::cout << "P R    ";
+						if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k])) {
+							//interactionType = PIT_NONE;
+							interactionType = PIT_MAIN;
+							exit_condition = true;
+						}
+						else if ((i->NBpart_ptr->m_type == usedParticles[kk]) and (i->Mpart_ptr->m_type == usedParticles[k])) {
+							//interactionType = PIT_NONE;
+							interactionType = PIT_NEIGHBOUR;
+							exit_condition = true;
+						}
+						break;
+					case(PASSIVE):
+						//std::cout << "P P    ";
+						if ((i->Mpart_ptr->m_type == usedParticles[kk]) and (i->NBpart_ptr->m_type == usedParticles[k]) or
+							(i->Mpart_ptr->m_type == usedParticles[k]) and (i->NBpart_ptr->m_type == usedParticles[kk])) {
+							interactionType = PIT_NONE;
+							exit_condition = true;
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				break;
+			default:
+				break;
 			}
+		}
 			_concreteEquation->Calc(vector_val, i, dim, interactionType);
 		}
 		//std::cout << i->Mpart_ptr->m_type << "  " << i->NBpart_ptr->m_type << "  " << interactionType << "\n";

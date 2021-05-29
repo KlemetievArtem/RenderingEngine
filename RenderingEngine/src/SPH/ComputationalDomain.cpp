@@ -1,8 +1,8 @@
 #include "ComputationalDomain.h"
 
-part_prec InitialSmR = 0.0125;
+//part_prec InitialSmR = 0.0125;
 //part_prec InitialSmR = 0.0323;
-//part_prec InitialSmR = 0.0375;
+part_prec InitialSmR = 0.0375;
 part_prec Dens0 = 1.0;
 
 float getRandomNumber(float min, float max) {
@@ -103,14 +103,14 @@ void SPH_CD::EquationsInitialization() {
 	}
 	else {
 
-		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
+		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval())); // 2
 		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, ACTIVE);
 		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
-		m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL()));
+		m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL())); //1
 		m_options.DensityUpdates[m_options.DensityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
 
-		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
+		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval())); //3
 		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, PASSIVE);
 		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
 		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(BOUNDARY, REACTIVE);
@@ -119,19 +119,20 @@ void SPH_CD::EquationsInitialization() {
 
 
 
-		m_options.MomentumConservation_PressureParts.push_back(new Equation(new K2_VelPressurePart_dval()));
+		m_options.MomentumConservation_PressureParts.push_back(new Equation(new K2_VelPressurePart_dval())); //2
 		m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(REAL, ACTIVE);
 		m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
 		//m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
 
-		m_options.MomentumConservation_ViscosityParts.push_back(new Equation(new K2_VelViscosityPart_dval()));
+		m_options.MomentumConservation_ViscosityParts.push_back(new Equation(new K2_VelViscosityPart_dval())); //2
 		m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(REAL, ACTIVE);
 		m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
 		//m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
-		m_options.VelocityUpdates.push_back(new TimeEquation(new VelocityUpdate_DVAL()));
+
+		m_options.VelocityUpdates.push_back(new TimeEquation(new VelocityUpdate_DVAL())); //1
 		m_options.VelocityUpdates[m_options.VelocityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
-		m_options.PositionUpdates.push_back(new TimeEquation(new PositionUpdate_add()));
+		m_options.PositionUpdates.push_back(new TimeEquation(new PositionUpdate_add())); //1
 		m_options.PositionUpdates[m_options.PositionUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
 	}

@@ -1000,7 +1000,7 @@ void Application::CompDomainInit() {
 
 	for (auto*&i : this->ComputationalDomains) {
 
-		i->setInitialDeltaTime(0.000005);
+		i->setInitialDeltaTime(0.00005);
 		i->setXminTo(0.f);
 		i->setXmaxTo(1.f);
 		i->setYminTo(0.f);

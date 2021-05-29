@@ -110,7 +110,7 @@ public:
 		int gamma = 7;
 		setSoundVel(1480.0);
 		part_prec Pressure0 = 1.0E05;
-		part_prec b = 100;
+		part_prec b = 10000;
 
 		part_prec Dens0 = 1.0;
 
