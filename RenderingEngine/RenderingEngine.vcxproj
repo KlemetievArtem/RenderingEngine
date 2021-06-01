@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application.h" />
-    <ClInclude Include="src\Boundary.h" />
+    <ClInclude Include="src\BoundaryBase.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Constructor.h" />
     <ClInclude Include="src\Events\Event.h" />
@@ -37,6 +37,7 @@
     <ClInclude Include="src\options\OptionColor.h" />
     <ClInclude Include="src\Primitives.h" />
     <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\SomeMathFolder.h" />
     <ClInclude Include="src\Something.h" />
     <ClInclude Include="src\SPH\ComputationalDomain.h" />
     <ClInclude Include="src\SPH\ConcreteEquationClasses.h" />
@@ -45,6 +46,7 @@
     <ClInclude Include="src\SPH\Particle.h" />
     <ClInclude Include="src\SPH\ParticlePair.h" />
     <ClInclude Include="src\SPH\BoundaryMentor.h" />
+    <ClInclude Include="src\SPH\ParticleSource.h" />
     <ClInclude Include="src\SPH\UniformTreeGrid.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\Utility.h" />
@@ -61,11 +63,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
-    <ClCompile Include="src\Boundary.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MatrixSimp.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\options\OptionColor.cpp" />
+    <ClCompile Include="src\SomeMathFolder.cpp" />
     <ClCompile Include="src\SPH\ComputationalDomain.cpp" />
     <ClCompile Include="src\SPH\FiniteParticleMethod.h" />
     <ClCompile Include="src\vendor\imgui\imgui.cpp" />

@@ -1008,7 +1008,7 @@ void Application::CompDomainInit() {
 		i->setZminTo(0.f);
 		i->setZmaxTo(1.f);
 
-		std::vector<CD_Boundary*> Boundaries;
+		//std::vector<CD_Boundary*> Boundaries;
 		std::vector<Mesh*> meshes;
 		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::X, Quad::PLUS), (i->getYmax() - i->getYmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
 		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
@@ -1027,20 +1027,58 @@ void Application::CompDomainInit() {
 		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::Z, Quad::MINUS), (i->getXmin() - i->getXmax()), (i->getYmin() - i->getYmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
 		
 
-		BOUNDARYCONDITION BCtype_List[] = { BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC };
-		BCPARAMETER BCparam_List[] = { BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X };
-		float BCval_List[] = { 0.f, 0.0f, 0.f, 0.1f, 0.0f, 0.0f,};
-		int count = 0;
+		//BOUNDARYCONDITION BCtype_List[] = { BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC };
+		//BCPARAMETER BCparam_List[] = { BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X };
+		//float BCval_List[] = { 0.f, 0.0f, 0.f, 0.1f, 0.0f, 0.0f,};
+		//int count = 0;
 
 		//Boundaries.push_back(new яD_Boundary(meshes[0], meshes[2]));
-		Boundaries.push_back(new CD_Boundary(meshes[0], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0f));   //кебн
+		//Boundaries.push_back(new CD_Boundary(meshes[0], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0f));   //кебн
 
-		Boundaries.push_back(new CD_Boundary(meshes[1], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0));   //мхг
+		//Boundaries.push_back(new CD_Boundary(meshes[1], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0));   //мхг
 
 		//Boundaries.push_back(new яD_Boundary(meshes[2], meshes[0]));
-		Boundaries.push_back(new CD_Boundary(meshes[2], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_Y, 0.0f));   //опюбн
+		//Boundaries.push_back(new CD_Boundary(meshes[2], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_Y, 0.0f));   //опюбн
 		
-		Boundaries.push_back(new CD_Boundary(meshes[3], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 1.0f));   //бепу
+		//Boundaries.push_back(new CD_Boundary(meshes[3], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 1.0f));   //бепу
+
+
+
+
+
+		std::vector<BoundaryBase*> CD_Boundaries;
+		//кебн
+		CD_Boundaries.push_back(new BoundaryBase(meshes[0]));
+		//CD_Boundaries[0]->addBC(new PeriodicBC(meshes[2]));
+		CD_Boundaries[0]->addBC(new Velcity_X_BC(0.0));
+		CD_Boundaries[0]->addBC(new Velcity_Y_BC(0.0));
+		CD_Boundaries[0]->addBC(new Velcity_Z_BC(0.0));
+		//CD_Boundaries[0]->addBC(new SourceBC(0.01, 0.0025,1.0, glm::vec3(1.0, 0.0, 0.0), meshes[0]));
+
+		//SourceBC* sbc = (SourceBC*)(CD_Boundaries[0]);
+		//std::cout << "TimeStep" << sbc->getTimeStep() << "\n";
+		
+		//мхг
+		CD_Boundaries.push_back(new BoundaryBase(meshes[1]));
+		CD_Boundaries[1]->addBC(new Velcity_X_BC(0.0));
+		CD_Boundaries[1]->addBC(new Velcity_Y_BC(0.0));
+		CD_Boundaries[1]->addBC(new Velcity_Z_BC(0.0));
+		//опюбн
+		CD_Boundaries.push_back(new BoundaryBase(meshes[2]));
+		//CD_Boundaries[2]->addBC(new PeriodicBC(meshes[0]));
+		CD_Boundaries[2]->addBC(new Velcity_X_BC(0.0));
+		CD_Boundaries[2]->addBC(new Velcity_Y_BC(0.0));
+		CD_Boundaries[2]->addBC(new Velcity_Z_BC(0.0));
+		//бепу
+		CD_Boundaries.push_back(new BoundaryBase(meshes[3]));
+		CD_Boundaries[3]->addBC(new Velcity_X_BC(1.0));
+		CD_Boundaries[3]->addBC(new Velcity_Y_BC(0.0));
+		CD_Boundaries[3]->addBC(new Velcity_Z_BC(0.0));
+		
+
+
+
+
 
 
 		for (auto* j : meshes) {
@@ -1052,16 +1090,17 @@ void Application::CompDomainInit() {
 
 
 		for (int j = 0;j < 4;j++) {
-			i->addBoundary(Boundaries[j]);
+			//i->addBoundary(Boundaries[j]);
+			i->addBoundary(CD_Boundaries[j]);
 		}
 
 		if ((application_mode == MODE::RUNNING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) {
 			BoundaryMeshing(i);
 		}
-
+		//Boundaries.pop_back();
 
 		glm::vec3 InitialVelocity(0.0f, 0.f, 0.f);
-		i->Initilization(InitialVelocity, &Boundaries);
+		i->Initilization(InitialVelocity, &CD_Boundaries);
 
 		i->assignPresetModels(this->models.size());
 		i->assignPresetMaterials(this->materials.size());

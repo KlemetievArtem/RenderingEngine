@@ -49,11 +49,7 @@ typedef double cd_prec;
 #include "MatrixSimp.h"
 
 
-#include "Vertex.h"
-#include "Primitives.h"
-#include "Shader.h"
-#include "Texture.h"
-#include "Material.h"
+
 #include "Mesh.h"
 #include "Model.h"
 #include "Mouse.h"

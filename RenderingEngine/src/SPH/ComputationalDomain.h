@@ -83,6 +83,7 @@ public:
 #include "BoundaryMentor.h"
 #include "UniformTreeGrid.h"
 #include "EquationClasses.h"
+#include "ParticleSource.h"
 
 
 // ѕередавать одни и теже опции в SPH и в пары
@@ -103,7 +104,7 @@ struct SPH_OPTIONS {
 
 	DISTRIBUTION distributionREAL = UNIFORM; // RANDOM UNIFORM
 	DISTRIBUTION distributionBOUNDARY = UNIFORM; // RANDOM UNIFORM
-	TIME_INTEGRATION_SCHEME timeIntegrationScheme = EXPLICIT; // EXPLICIT IMPLICIT SEMI_IMPICIT SECOND_ORDER_SCEME NONE
+	TIME_INTEGRATION_SCHEME timeIntegrationScheme = SECOND_ORDER_SCEME; // EXPLICIT IMPLICIT SEMI_IMPICIT SECOND_ORDER_SCEME NONE
 	BOUNDARY_HANDLING boundary_handling = MIRROR_PARTICLES; // MIRROR_PARTICLES RENORMALIZATION
 	// true  false
 	bool firstCycle = true;
@@ -168,9 +169,9 @@ public:
 private:
 	void EquationsInitialization();
 	void RealParticlesInitialization(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
-	void BoundaryParticlesInitialization(std::vector<CD_Boundary*>* activeBoundaries);//(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
+	void BoundaryParticlesInitialization(std::vector<BoundaryBase*>* activeBoundaries, part_prec smR, part_prec density);//(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
 
-	void Initilization(glm::vec3 velocity, std::vector<CD_Boundary*>* activeBoundaries);
+	void Initilization(glm::vec3 velocity, std::vector<BoundaryBase*>* activeBoundaries);
 	//void InitialRendering(std::vector<Mesh*>* meshes);
 
 	//void UpdateRendering(std::vector<Model*>* models);
@@ -178,7 +179,6 @@ private:
 	void AfterRendering(std::vector<Model*>* models);
 
 	void timeUpdate(cd_prec dt);
-
 	void timeStep(cd_prec dt);
 	void timeStep_thread(cd_prec dt, std::atomic<bool>& dataReadyForRender, std::atomic<bool>& dataIsRendering);
 
@@ -260,6 +260,14 @@ private:
 	void RenormFactorDerivCalc(std::vector<part_prec_3>* gamma_deriv, ParticlePair* pp);
 	void RenormPressurePartCalculation(std::vector<part_prec_3>* dvdt, ParticlePair* pp);
 	
+
+
+
+
+
+	std::vector<ParticleSourcesContainer> particleSourceContainers;
+
+	void BoundariesUpdate(part_prec smR, part_prec density);
 
 
 	void FirstMiddleLastCMoutput();

@@ -10,6 +10,8 @@
 #include "Texture.h"
 #include "Material.h"
 
+#include "SomeMathFolder.h"
+
 
 class Mesh {
 private:
@@ -373,9 +375,26 @@ public:
 	GLuint* getIndexArray() { return indexArray; }
 	Vertex* getVertexArray() { return vertexArray; }
 
+	float Area() const {
+		glm::vec3 pos1(0.0, 0.0, 0.0);
+		glm::vec3 pos2(0.0, 0.0, 0.0);
+		glm::vec3 pos3(0.0, 0.0, 0.0);
+		float Sum = 0.0;
+		int point_num = 1;
+		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices/3); i++) {
+			int p1 = indexArray[i * 3 + 0];
+			int p2 = indexArray[i * 3 + 1];
+			int p3 = indexArray[i * 3 + 2];
 
+			glm::vec3 pos1 = this->vertexArray[p1].position;
+			glm::vec3 pos2 = this->vertexArray[p2].position;
+			glm::vec3 pos3 = this->vertexArray[p3].position;
+
+			Sum += SurfaceArea(pos1, pos2, pos3);
+		}
+		return Sum;
+	}
 
 	friend bool operator==(const Mesh& mesh1, const Mesh& mesh2);
-
-
 };
+

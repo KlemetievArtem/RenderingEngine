@@ -1,5 +1,4 @@
 #pragma once
-#include "libs.h"
 
 enum BOUNDARYCONDITION {
 	FIRSTORDER_BC,
@@ -20,6 +19,8 @@ private:
 	std::vector<float> BC_value;
 	bool periodic = false;
 	Mesh* periodic_mesh = nullptr;
+
+	bool source = false;
 
 public:
 	   
@@ -56,6 +57,18 @@ public:
 		periodic = true;
 	}
 
+	void transformToSource() {
+		this->source = true;
+		for (int i = 0;i < ALL_PARAMETRS;i++) {
+			if (BC_types[i] != FIRSTORDER_BC) {
+				BC_types[i] = FIRSTORDER_BC;
+				std::cout << "BC_types were changed? you better chek \n";
+			}
+		}
+		if (sqrt(pow(BC_value[BCPARAMETER::VELOCITY_X], 2) + pow(BC_value[BCPARAMETER::VELOCITY_Y], 2) + pow(BC_value[BCPARAMETER::VELOCITY_Z], 2)) == 0) {
+			assert("Source boundary velocity is equal to" && 0);
+		}
+	}
 
 
 	CD_Boundary(CD_Boundary* newBoundary)
@@ -91,6 +104,7 @@ public:
 	std::vector<BCPARAMETER> getBCparams() { return this->BC_parameters; }
 	std::vector<float> getBCvals() { return this->BC_value; }
 	bool isPeriodic() { return this->periodic; }
+	bool isSource() { return this->source; }
 
 
 

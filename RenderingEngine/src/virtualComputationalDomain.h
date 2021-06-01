@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Boundary.h"
+//#include "Boundary.h"
+#include "BoundaryBase.h"
 
 enum DIMENSIONS {
 	D0,
@@ -68,7 +69,8 @@ private:
 
 
 protected:
-	std::vector<CD_Boundary*> Boundaries;
+	//std::vector<CD_Boundary*> Boundaries;
+	std::vector<BoundaryBase*> CD_Boundaries;
 	int ModelId;
 	int CD_ModelId;
 	int MaterialId;
@@ -128,13 +130,17 @@ public:
 	void timeStepEnd() { currentTime += deltaTime; }
 
 
-	void addBoundary(CD_Boundary* boundary) {
-		Boundaries.push_back(boundary);
+	//void addBoundary(CD_Boundary* boundary) {
+	//	Boundaries.push_back(boundary);
+	//}
+	void addBoundary(BoundaryBase* cd_boundary) {
+		CD_Boundaries.push_back(cd_boundary);
 	}
+	
 	void InitialBoundaryRendering(std::vector<Mesh*>* meshes) {
 
 		//std::cout << "\n" << Boundaries.size() << "\n";
-		for (auto i : Boundaries) {
+		for (auto i : CD_Boundaries) {
 			Mesh* testMesh = i->ReturnMesh();
 			//testMesh->printAll();
 			meshes->push_back(new Mesh(i->ReturnMesh()));
@@ -142,7 +148,7 @@ public:
 	}
 	void assignBoundaryModel(int id) { BoundaryModelId = id; }
 
-	virtual void Initilization(glm::vec3 velocity, std::vector<CD_Boundary*>* activeBoundaries) = 0;
+	virtual void Initilization(glm::vec3 velocity, std::vector<BoundaryBase*>* activeBoundaries) = 0;
 	//virtual void InitialRendering(std::vector<Mesh*>* meshes) = 0;
 
 	virtual void assignPresetModels(int id) { ModelId = id; }

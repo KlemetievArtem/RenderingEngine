@@ -49,8 +49,8 @@ public:
 	part_prec m_DVisc;
 
 
-	part_prec gamma;
-	part_prec_3 grad_gamma;
+	part_prec m_gamma;
+	part_prec_3 m_grad_gamma;
 	
 
 	part_prec dummyParameter;
@@ -81,8 +81,9 @@ public:
 		//VirtualCounterpartFlags.resize(0);
 	}
 
-	CD_Boundary* particle_boundary;
-	void assignToBoundary(CD_Boundary* cd_boundaty) { particle_boundary = cd_boundaty; }
+	//CD_Boundary* particle_boundary;
+	BoundaryBase* particle_boundary;
+	void assignToBoundary(BoundaryBase* cd_boundary) { particle_boundary = cd_boundary; }
 
 	part_prec dx(Particle* other) { return this->m_position.val.x - other->m_position.val.x; }
 	part_prec dy(Particle* other) { return this->m_position.val.y - other->m_position.val.y; }
@@ -107,31 +108,31 @@ public:
 	
 
 	void p_art_water() {
-		int gamma = 7;
+		int Heat_capacity_ratio = 7;
 		setSoundVel(1480.0);
 		part_prec Pressure0 = 1.0E05;
 		part_prec b = 10000;
 
 		part_prec Dens0 = 1.0;
 
-		//p = b * ((m_dens / Dens0)**gamma - 1)
-		//m_pressure.val = (b*pow((m_density.val / Dens0), gamma) - 1);
-		//m_pressure.val = Pressure0 + Dens0 * pow(m_SoundVelocity, 2) / static_cast<part_prec>(gamma) * (pow(m_density.val / Dens0, gamma) - static_cast<part_prec>(1.0));
+		//p = b * ((m_dens / Dens0)**Heat_capacity_ratio - 1)
+		//m_pressure.val = (b*pow((m_density.val / Dens0), Heat_capacity_ratio) - 1);
+		//m_pressure =  Dens0 * pow(m_SoundVelocity, 2) / static_cast<part_prec>(Heat_capacity_ratio) * (pow(m_density.val / Dens0, Heat_capacity_ratio) - static_cast<part_prec>(1.0));
 		//m_pressure.val = pow(m_SoundVelocity, 2)  * (m_density.val - Dens0);
 
-		m_pressure =  b* (pow(m_density.val / Dens0, gamma) - static_cast<part_prec>(1.0));
+		m_pressure =  b* (pow(m_density.val / Dens0, Heat_capacity_ratio) - static_cast<part_prec>(1.0));
 
 		//m_pressure.val = b * ((m_density.val- Dens0) / Dens0);
 
 		//if(m_id == 961 - 31){
 		//	std::cout << "density = " <<m_density.val << "\n";
-		//	std::cout << "pressure = " << Dens0 << "*" << pow(m_SoundVelocity, 2) << "/" << gamma << "*(" << "(" << m_density.val <<"/"<< Dens0 << ")^" << gamma << "-" << 1.f << ")" << "=" << m_pressure.val << "\n";
+		//	std::cout << "pressure = " << Dens0 << "*" << pow(m_SoundVelocity, 2) << "/" << Heat_capacity_ratio << "*(" << "(" << m_density.val <<"/"<< Dens0 << ")^" << Heat_capacity_ratio << "-" << 1.f << ")" << "=" << m_pressure.val << "\n";
 		//}
 	}
 	void p_gas() {
-		float gamma = 1.4f;
-		m_pressure = ((gamma - 1)*m_density.val*m_Temperature);
-		setSoundVel(sqrt((gamma - 1)*m_Temperature));
+		float Heat_capacity_ratio = 1.4f;
+		m_pressure = ((Heat_capacity_ratio - 1)*m_density.val*m_Temperature);
+		setSoundVel(sqrt((Heat_capacity_ratio - 1)*m_Temperature));
 
 	}
 
