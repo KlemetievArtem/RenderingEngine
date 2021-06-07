@@ -168,7 +168,7 @@ public:
 	}
 private:
 	void EquationsInitialization();
-	void RealParticlesInitialization(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
+	void RealParticlesInitialization(int nrOfParticlesForVolume, glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
 	void BoundaryParticlesInitialization(std::vector<BoundaryBase*>* activeBoundaries, part_prec smR, part_prec density);//(glm::vec3 positionMin, glm::vec3 domainSize, glm::vec3 velocity, part_prec smR, part_prec density);
 
 	void Initilization(glm::vec3 velocity, std::vector<BoundaryBase*>* activeBoundaries);

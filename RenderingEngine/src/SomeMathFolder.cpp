@@ -17,3 +17,13 @@ double SurfaceArea(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
 	m3(0, 2) = 1.0; m3(1, 2) = p3.y; m3(2, 2) = p3.z;
 	return retVal = 0.5*sqrt(pow(determinant(m1), 2) + pow(determinant(m2), 2) + pow(determinant(m3), 2));
 }
+
+double GetMIN(double v1, double v2) {
+	if (v1 < v2) return v1;
+	else return v2;
+}
+
+double GetMAX(double v1, double v2) {
+	if (v1 > v2) return v1;
+	else return v2;
+}

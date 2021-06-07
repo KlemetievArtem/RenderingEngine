@@ -380,7 +380,6 @@ public:
 		glm::vec3 pos2(0.0, 0.0, 0.0);
 		glm::vec3 pos3(0.0, 0.0, 0.0);
 		float Sum = 0.0;
-		int point_num = 1;
 		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices/3); i++) {
 			int p1 = indexArray[i * 3 + 0];
 			int p2 = indexArray[i * 3 + 1];
@@ -394,6 +393,99 @@ public:
 		}
 		return Sum;
 	}
+
+	float getMinX() const {
+		float min = this->vertexArray[indexArray[0]].position.x;
+		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices / 3); i++) {
+			int p1 = indexArray[i * 3 + 0];
+			int p2 = indexArray[i * 3 + 1];
+			int p3 = indexArray[i * 3 + 2];
+
+			float pos1 = this->vertexArray[p1].position.x;
+			float pos2 = this->vertexArray[p2].position.x;
+			float pos3 = this->vertexArray[p3].position.x;
+			float minPos = GetMIN(GetMIN(pos1, pos2),pos3);
+			if (minPos < min) { min = minPos; }
+		}
+		return min;
+	}
+	float getMinY() {
+		float min = this->vertexArray[indexArray[0]].position.y;
+		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices / 3); i++) {
+			int p1 = indexArray[i * 3 + 0];
+			int p2 = indexArray[i * 3 + 1];
+			int p3 = indexArray[i * 3 + 2];
+
+			float pos1 = this->vertexArray[p1].position.y;
+			float pos2 = this->vertexArray[p2].position.y;
+			float pos3 = this->vertexArray[p3].position.y;
+			float minPos = GetMIN(GetMIN(pos1, pos2), pos3);
+			if (minPos < min) { min = minPos; }
+		}
+		return min;
+	}
+	float getMinZ() {
+		float min = this->vertexArray[indexArray[0]].position.z;
+		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices / 3); i++) {
+			int p1 = indexArray[i * 3 + 0];
+			int p2 = indexArray[i * 3 + 1];
+			int p3 = indexArray[i * 3 + 2];
+
+			float pos1 = this->vertexArray[p1].position.z;
+			float pos2 = this->vertexArray[p2].position.z;
+			float pos3 = this->vertexArray[p3].position.z;
+			float minPos = GetMIN(GetMIN(pos1, pos2), pos3);
+			if (minPos < min) { min = minPos; }
+		}
+		return min;
+	}
+
+	float getMaxX() {
+		float max = this->vertexArray[indexArray[0]].position.x;
+		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices / 3); i++) {
+			int p1 = indexArray[i * 3 + 0];
+			int p2 = indexArray[i * 3 + 1];
+			int p3 = indexArray[i * 3 + 2];
+
+			float pos1 = this->vertexArray[p1].position.x;
+			float pos2 = this->vertexArray[p2].position.x;
+			float pos3 = this->vertexArray[p3].position.x;
+			float maxPos = GetMAX(GetMAX(pos1, pos2), pos3);
+			if (maxPos > max) { max = maxPos; }
+		}
+		return max;
+	}
+	float getMaxY() {
+		float max = this->vertexArray[indexArray[0]].position.y;
+		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices / 3); i++) {
+			int p1 = indexArray[i * 3 + 0];
+			int p2 = indexArray[i * 3 + 1];
+			int p3 = indexArray[i * 3 + 2];
+
+			float pos1 = this->vertexArray[p1].position.y;
+			float pos2 = this->vertexArray[p2].position.y;
+			float pos3 = this->vertexArray[p3].position.y;
+			float maxPos = GetMAX(GetMAX(pos1, pos2), pos3);
+			if (maxPos > max) { max = maxPos; }
+		}
+		return max;
+	}
+	float getMaxZ() {
+		float max = this->vertexArray[indexArray[0]].position.z;
+		for (size_t i = 0; i < static_cast<int>(this->nrOfIndices / 3); i++) {
+			int p1 = indexArray[i * 3 + 0];
+			int p2 = indexArray[i * 3 + 1];
+			int p3 = indexArray[i * 3 + 2];
+
+			float pos1 = this->vertexArray[p1].position.z;
+			float pos2 = this->vertexArray[p2].position.z;
+			float pos3 = this->vertexArray[p3].position.z;
+			float maxPos = GetMAX(GetMAX(pos1, pos2), pos3);
+			if (maxPos > max) { max = maxPos; }
+		}
+		return max;
+	}
+
 
 	friend bool operator==(const Mesh& mesh1, const Mesh& mesh2);
 };

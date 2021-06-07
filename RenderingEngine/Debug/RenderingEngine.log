@@ -1,4 +1,23 @@
 ﻿  Application.cpp
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(393): warning C4244: +=: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\options\option.h(5): fatal error C1083: Не удается открыть файл включение: imgui/imgui.h: No such file or directory,
   main.cpp
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(393): warning C4244: +=: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\options\option.h(5): fatal error C1083: Не удается открыть файл включение: imgui/imgui.h: No such file or directory,
+  MatrixSimp.cpp
+  Mesh.cpp
+d:\renderingengine\renderingengine\renderingengine\src\mesh.cpp(1): fatal error C1083: Не удается открыть файл включение: Mesh.h: No such file or directory,
+  OptionColor.cpp
+d:\renderingengine\renderingengine\renderingengine\src\options\option.h(3): fatal error C1083: Не удается открыть файл включение: libs.h: No such file or directory,
+  SomeMathFolder.cpp
+  ComputationalDomain.cpp
+d:\renderingengine\renderingengine\renderingengine\src\sph\computationaldomain.h(3): fatal error C1083: Не удается открыть файл включение: virtualComputationalDomain.h: No such file or directory,
+  FiniteParticleMethod.h
+d:\renderingengine\renderingengine\renderingengine\src\sph\finiteparticlemethod.h(2): fatal error C1083: Не удается открыть файл включение: libs.h: No such file or directory,
+  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_impl_glfw.cpp
+  imgui_impl_opengl3.cpp
+  imgui_widgets.cpp
   Создание кода...
-  RenderingEngine.vcxproj -> D:\RenderingEngine\RenderingEngine\Debug\RenderingEngine.exe

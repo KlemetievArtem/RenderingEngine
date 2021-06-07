@@ -998,118 +998,177 @@ void Application::CompDomainInit() {
 		if ((application_mode == MODE::DEBUG_WITHOUT_RENDERING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) { i->setModeToDEBUG(); }
 	}
 
-	for (auto*&i : this->ComputationalDomains) {
-
-		i->setInitialDeltaTime(0.00005);
-		i->setXminTo(0.f);
-		i->setXmaxTo(1.f);
-		i->setYminTo(0.f);
-		i->setYmaxTo(1.f);
-		i->setZminTo(0.f);
-		i->setZmaxTo(1.f);
-
-		//std::vector<CD_Boundary*> Boundaries;
+	/*
+	{
+		// Á‡‰‡ÌËÂ ¯‡„‡ ÔÓ ‚ÂÏÂÌË Ë Ï‡ÍËÏ‡Î¸Ì˚ı Ë ÏËÌËÏ‡Î¸Ì˚ı „‡ÌËˆ ‡Ò˜ÂÚÌÓÈ Ó·Î‡ÒÚË
+		{
+			this->ComputationalDomains[0]->setInitialDeltaTime(0.00005);
+			this->ComputationalDomains[0]->setXminTo(0.f);
+			this->ComputationalDomains[0]->setXmaxTo(1.f);
+			this->ComputationalDomains[0]->setYminTo(0.f);
+			this->ComputationalDomains[0]->setYmaxTo(1.f);
+			this->ComputationalDomains[0]->setZminTo(0.f);
+			this->ComputationalDomains[0]->setZmaxTo(1.f);
+		}
 		std::vector<Mesh*> meshes;
-		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::X, Quad::PLUS), (i->getYmax() - i->getYmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+		{
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::X, Quad::PLUS), (i->getYmax() - i->getYmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			meshes.push_back(new Mesh(&Quad(glm::vec3(this->ComputationalDomains[0]->getXmin(), this->ComputationalDomains[0]->getYmin(), -0.005f), Quad::QuadNormal(Quad::X, Quad::PLUS), (this->ComputationalDomains[0]->getYmax() - this->ComputationalDomains[0]->getYmin()), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			meshes.push_back(new Mesh(&Quad(glm::vec3(this->ComputationalDomains[0]->getXmin(), this->ComputationalDomains[0]->getYmin(), -0.005f), Quad::QuadNormal(Quad::Y, Quad::PLUS), (this->ComputationalDomains[0]->getXmax() - this->ComputationalDomains[0]->getXmin()), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Z, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getYmax() - i->getYmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
 
-		meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), -0.005f), Quad::QuadNormal(Quad::X, Quad::PLUS), (i->getYmax() - i->getYmin()), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-		meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), -0.005f), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-
-		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Z, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getYmax() - i->getYmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-
-		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::X, Quad::MINUS), (i->getYmin() - i->getYmax()), (i->getZmin() - i->getZmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::Y, Quad::MINUS), (i->getXmin() - i->getXmax()), (i->getZmin() - i->getZmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-
-		meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), 0.005f), Quad::QuadNormal(Quad::X, Quad::MINUS), (i->getYmin() - i->getYmax()), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-		meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), 0.005f), Quad::QuadNormal(Quad::Y, Quad::MINUS), (i->getXmin() - i->getXmax()), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-
-		//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::Z, Quad::MINUS), (i->getXmin() - i->getXmax()), (i->getYmin() - i->getYmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-		
-
-		//BOUNDARYCONDITION BCtype_List[] = { BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC ,BOUNDARYCONDITION::FIRSTORDER_BC };
-		//BCPARAMETER BCparam_List[] = { BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X,BCPARAMETER::VELOCITY_X };
-		//float BCval_List[] = { 0.f, 0.0f, 0.f, 0.1f, 0.0f, 0.0f,};
-		//int count = 0;
-
-		//Boundaries.push_back(new —D_Boundary(meshes[0], meshes[2]));
-		//Boundaries.push_back(new CD_Boundary(meshes[0], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0f));   //À≈¬Œ
-
-		//Boundaries.push_back(new CD_Boundary(meshes[1], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 0.0));   //Õ»«
-
-		//Boundaries.push_back(new —D_Boundary(meshes[2], meshes[0]));
-		//Boundaries.push_back(new CD_Boundary(meshes[2], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_Y, 0.0f));   //œ–¿¬Œ
-		
-		//Boundaries.push_back(new CD_Boundary(meshes[3], BOUNDARYCONDITION::FIRSTORDER_BC, BCPARAMETER::VELOCITY_X, 1.0f));   //¬≈–’
-
-
-
-
-
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::X, Quad::MINUS), (i->getYmin() - i->getYmax()), (i->getZmin() - i->getZmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::Y, Quad::MINUS), (i->getXmin() - i->getXmax()), (i->getZmin() - i->getZmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			meshes.push_back(new Mesh(&Quad(glm::vec3(this->ComputationalDomains[0]->getXmax(), this->ComputationalDomains[0]->getYmax(), 0.005f), Quad::QuadNormal(Quad::X, Quad::MINUS), (this->ComputationalDomains[0]->getYmin() - this->ComputationalDomains[0]->getYmax()), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			meshes.push_back(new Mesh(&Quad(glm::vec3(this->ComputationalDomains[0]->getXmax(), this->ComputationalDomains[0]->getYmax(), 0.005f), Quad::QuadNormal(Quad::Y, Quad::MINUS), (this->ComputationalDomains[0]->getXmin() - this->ComputationalDomains[0]->getXmax()), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::Z, Quad::MINUS), (i->getXmin() - i->getXmax()), (i->getYmin() - i->getYmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+		}
+	//√–¿Õ»◊Õ€≈ ”—ÀŒ¬»ﬂ
 		std::vector<BoundaryBase*> CD_Boundaries;
-		//À≈¬Œ
-		CD_Boundaries.push_back(new BoundaryBase(meshes[0]));
-		//CD_Boundaries[0]->addBC(new PeriodicBC(meshes[2]));
-		CD_Boundaries[0]->addBC(new Velcity_X_BC(0.0));
-		CD_Boundaries[0]->addBC(new Velcity_Y_BC(0.0));
-		CD_Boundaries[0]->addBC(new Velcity_Z_BC(0.0));
-		//CD_Boundaries[0]->addBC(new SourceBC(0.01, 0.0025,1.0, glm::vec3(1.0, 0.0, 0.0), meshes[0]));
-
-		//SourceBC* sbc = (SourceBC*)(CD_Boundaries[0]);
-		//std::cout << "TimeStep" << sbc->getTimeStep() << "\n";
-		
-		//Õ»«
-		CD_Boundaries.push_back(new BoundaryBase(meshes[1]));
-		CD_Boundaries[1]->addBC(new Velcity_X_BC(0.0));
-		CD_Boundaries[1]->addBC(new Velcity_Y_BC(0.0));
-		CD_Boundaries[1]->addBC(new Velcity_Z_BC(0.0));
-		//œ–¿¬Œ
-		CD_Boundaries.push_back(new BoundaryBase(meshes[2]));
-		//CD_Boundaries[2]->addBC(new PeriodicBC(meshes[0]));
-		CD_Boundaries[2]->addBC(new Velcity_X_BC(0.0));
-		CD_Boundaries[2]->addBC(new Velcity_Y_BC(0.0));
-		CD_Boundaries[2]->addBC(new Velcity_Z_BC(0.0));
-		//¬≈–’
-		CD_Boundaries.push_back(new BoundaryBase(meshes[3]));
-		CD_Boundaries[3]->addBC(new Velcity_X_BC(1.0));
-		CD_Boundaries[3]->addBC(new Velcity_Y_BC(0.0));
-		CD_Boundaries[3]->addBC(new Velcity_Z_BC(0.0));
-		
-
-
-
-
-
-
-		for (auto* j : meshes) {
-			//Boundaries.push_back(new —D_Boundary(j, BCtype_List[count], BCparam_List[count], BCval_List[count]));
-			//count++;
-			//j->printAll();
-			delete j;
+		{
+			//À≈¬Œ
+			CD_Boundaries.push_back(new BoundaryBase(meshes[0]));
+			//CD_Boundaries[0]->addBC(new PeriodicBC(meshes[2]));
+			CD_Boundaries[0]->addBC(new Velcity_X_BC(0.0));
+			CD_Boundaries[0]->addBC(new Velcity_Y_BC(0.0));
+			CD_Boundaries[0]->addBC(new Velcity_Z_BC(0.0));
+			//CD_Boundaries[0]->addBC(new SourceBC(0.01, 0.0025,1.0, glm::vec3(1.0, 0.0, 0.0), meshes[0]));
+			//Õ»«
+			CD_Boundaries.push_back(new BoundaryBase(meshes[1]));
+			CD_Boundaries[1]->addBC(new Velcity_X_BC(0.0));
+			CD_Boundaries[1]->addBC(new Velcity_Y_BC(0.0));
+			CD_Boundaries[1]->addBC(new Velcity_Z_BC(0.0));
+			//œ–¿¬Œ
+			CD_Boundaries.push_back(new BoundaryBase(meshes[2]));
+			//CD_Boundaries[2]->addBC(new PeriodicBC(meshes[0]));
+			CD_Boundaries[2]->addBC(new Velcity_X_BC(0.0));
+			CD_Boundaries[2]->addBC(new Velcity_Y_BC(0.0));
+			CD_Boundaries[2]->addBC(new Velcity_Z_BC(0.0));
+			//¬≈–’
+			CD_Boundaries.push_back(new BoundaryBase(meshes[3]));
+			CD_Boundaries[3]->addBC(new Velcity_X_BC(1.0));
+			CD_Boundaries[3]->addBC(new Velcity_Y_BC(0.0));
+			CD_Boundaries[3]->addBC(new Velcity_Z_BC(0.0));
 		}
-
-
-		for (int j = 0;j < 4;j++) {
-			//i->addBoundary(Boundaries[j]);
-			i->addBoundary(CD_Boundaries[j]);
-		}
-
-		if ((application_mode == MODE::RUNNING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) {
-			BoundaryMeshing(i);
-		}
-		//Boundaries.pop_back();
-
+		for (auto* j : meshes) { delete j; }
+		for (auto cdb : CD_Boundaries) { this->ComputationalDomains[0]->addBoundary(cdb); }
 		glm::vec3 InitialVelocity(0.0f, 0.f, 0.f);
-		i->Initilization(InitialVelocity, &CD_Boundaries);
+		this->ComputationalDomains[0]->Initilization(InitialVelocity, &CD_Boundaries);
 
-		i->assignPresetModels(this->models.size());
-		i->assignPresetMaterials(this->materials.size());
-
-		//if ((application_mode == MODE::RUNNING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) {
-		//	CDMeshing(i);
-		//}
+		this->ComputationalDomains[0]->assignPresetModels(this->models.size());
+		this->ComputationalDomains[0]->assignPresetMaterials(this->materials.size());
+		for (auto*&i : this->ComputationalDomains) {
+			if ((application_mode == MODE::RUNNING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) {
+				BoundaryMeshing(i);
+			}
+		}
 	}
+	*/
 
+
+	{
+		for (auto*&i : this->ComputationalDomains) {
+
+			i->setInitialDeltaTime(0.00005);
+			i->setXminTo(0.f);
+			i->setXmaxTo(1.f);
+			i->setYminTo(0.f);
+			i->setYmaxTo(1.f);
+			i->setZminTo(0.f);
+			i->setZmaxTo(1.f);
+
+			std::vector<Mesh*> meshes;
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::X, Quad::PLUS), (i->getYmax() - i->getYmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getZmax() - i->getZmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+
+			meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), -0.005f), Quad::QuadNormal(Quad::X, Quad::PLUS), (i->getYmax() - i->getYmin()), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), -0.005f), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmin(), i->getZmin()), Quad::QuadNormal(Quad::Z, Quad::PLUS), (i->getXmax() - i->getXmin()), (i->getYmax() - i->getYmin())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::X, Quad::MINUS), (i->getYmin() - i->getYmax()), (i->getZmin() - i->getZmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::Y, Quad::MINUS), (i->getXmin() - i->getXmax()), (i->getZmin() - i->getZmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+
+			meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), 0.005f), Quad::QuadNormal(Quad::X, Quad::MINUS), (i->getYmin() - i->getYmax()), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+			meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), 0.005f), Quad::QuadNormal(Quad::Y, Quad::MINUS), (i->getXmin() - i->getXmax()), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+
+			//meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax(), i->getZmax()), Quad::QuadNormal(Quad::Z, Quad::MINUS), (i->getXmin() - i->getXmax()), (i->getYmin() - i->getYmax())), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+		
+
+			//√–¿Õ»◊Õ€≈ ”—ÀŒ¬»ﬂ
+			std::vector<BoundaryBase*> CD_Boundaries;
+
+
+			//À≈¬Œ
+			CD_Boundaries.push_back(new BoundaryBase(meshes[0]));
+			//CD_Boundaries[0]->addBC(new PeriodicBC(meshes[2]));
+			CD_Boundaries[0]->addWallBC(glm::vec3(0.0, 0.0, 0.0));
+			//CD_Boundaries[0]->addBC(new SourceBC(0.01, 0.0025,1.0, glm::vec3(1.0, 0.0, 0.0), meshes[0]));
+			//Õ»«
+			CD_Boundaries.push_back(new BoundaryBase(meshes[1]));
+			CD_Boundaries[1]->addWallBC(glm::vec3(0.0, 0.0, 0.0));
+			//œ–¿¬Œ
+			CD_Boundaries.push_back(new BoundaryBase(meshes[2]));
+			//CD_Boundaries[2]->addBC(new PeriodicBC(meshes[0]));
+			CD_Boundaries[2]->addWallBC(glm::vec3(0.0, 0.0, 0.0));
+			//¬≈–’
+			if (true) {
+				CD_Boundaries.push_back(new BoundaryBase(meshes[3]));
+				CD_Boundaries[3]->addWallBC(glm::vec3(1.0, 0.0, 0.0));
+			}
+			else {
+				meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmax(), -0.005f), Quad::QuadNormal(Quad::X, Quad::PLUS), (0.1f), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+				meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmin(), i->getYmax(), -0.005f), Quad::QuadNormal(Quad::Y, Quad::PLUS), (i->getXmax() - i->getXmin()), 0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+				meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax() + 0.1f, 0.005f), Quad::QuadNormal(Quad::X, Quad::MINUS), (-0.1f), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+				meshes.push_back(new Mesh(&Quad(glm::vec3(i->getXmax(), i->getYmax() + 0.1f, 0.005f), Quad::QuadNormal(Quad::Y, Quad::MINUS), (i->getXmin() - i->getXmax()), -0.01f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+
+				CD_Boundaries.push_back(new BoundaryBase(meshes[4]));
+				CD_Boundaries[3]->addBC(new PeriodicBC(meshes[6]));
+				CD_Boundaries.push_back(new BoundaryBase(meshes[6]));
+				CD_Boundaries[4]->addBC(new PeriodicBC(meshes[4]));
+				CD_Boundaries.push_back(new BoundaryBase(meshes[7]));
+				CD_Boundaries[5]->addWallBC(glm::vec3(1.0, 0.0, 0.0));
+			}
+
+
+			for (auto* j : meshes) {
+				//Boundaries.push_back(new —D_Boundary(j, BCtype_List[count], BCparam_List[count], BCval_List[count]));
+				//count++;
+				//j->printAll();
+				delete j;
+			}
+
+			for (auto cdb : CD_Boundaries) {
+				i->addBoundary(cdb);
+			}
+			//for (auto cdb : CD_Boundaries_h) {
+			//	i->addBoundary(cdb);
+			//}
+
+			if ((application_mode == MODE::RUNNING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) {
+				BoundaryMeshing(i);
+			}
+			//Boundaries.pop_back();
+
+			glm::vec3 InitialVelocity(0.0f, 0.f, 0.f);
+			i->Initilization(InitialVelocity, &CD_Boundaries);
+
+			//glm::vec3 InitialVelocity_h(1.0f, 0.f, 0.f);
+			//i->Initilization(InitialVelocity_h, &CD_Boundaries_h);
+
+
+
+
+
+			i->assignPresetModels(this->models.size());
+			i->assignPresetMaterials(this->materials.size());
+
+			//if ((application_mode == MODE::RUNNING) or (application_mode == MODE::DEBUG_WITH_RENDERING)) {
+			//	CDMeshing(i);
+			//}
+		}
+	}
 
 }
 
