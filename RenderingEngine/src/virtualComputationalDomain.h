@@ -169,7 +169,12 @@ public:
 	void setStatMaxVel(cd_prec val) { m_statystic.maxVelocity = val; }
 	void setStatMinScale(cd_prec val) { m_statystic.minScale = val; }
 	cd_prec getStatMinScale() { return m_statystic.minScale; }
-	cd_prec getStatMinTime() { return m_statystic.minScale / m_statystic.maxVelocity; }
+	cd_prec getStatMinTime() { 
+		//if (m_statystic.minScale / m_statystic.maxVelocity < 0.0375 / 1480.0)
+			return m_statystic.minScale / m_statystic.maxVelocity;
+		//else
+		//	return 0.0375 / 1480.0;
+	}
 
 	void setStatAveScale(float val) { m_statystic.aveScale = val; }
 

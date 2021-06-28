@@ -150,11 +150,17 @@ public:
 
 	friend Matrix operator*(Matrix& m, double f);
 	friend Matrix operator*(const Matrix& m, double f);
-	friend Matrix operator*(Matrix& m, float f);
-	friend Matrix operator*(const Matrix& m, float f);
+	friend Matrix operator+(Matrix& m1, Matrix& m2);
+	friend Matrix operator-(Matrix& m1, Matrix& m2);
+	friend Matrix operator*(double f, Matrix& m);
+	friend Matrix operator*(double f, const Matrix& m);
 
 	friend std::vector<double> operator*(Matrix& m, std::vector<double> vec);
 	friend std::vector<double> operator*(const Matrix& m, std::vector<double> vec);
+
+
+	friend std::vector<double> operator*(std::vector<double> vec, Matrix& m);
+	friend std::vector<double> operator*(std::vector<double> vec, const Matrix& m);
 
 
 
@@ -169,6 +175,7 @@ public:
 		}
 		return *this;
 	}
+
 
 
 

@@ -48,6 +48,7 @@ private:
 	float dt;
 	float curTime;
 	float lastTime;
+	float simTimeStep;
 	//Mouse input
 	double lastMouseX;
 	double lastMouseY;

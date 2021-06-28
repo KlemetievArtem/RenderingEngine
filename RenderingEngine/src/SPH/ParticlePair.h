@@ -293,11 +293,11 @@ public:
 	typedef part_prec(Particle::*dsmthFuncvec3pos)(glm::vec3);
 
 	ParticlePair(Particle* mpart, Particle* nbpart, DIMENSIONS dim, cd_prec &mindistance)
-		: Mpart_ptr(mpart), NBpart_ptr(nbpart), mode(new QuinticSpline()){
+		: Mpart_ptr(mpart), NBpart_ptr(nbpart), mode(new QubicSpline()){
 		//std::cout << Mpart_ptr->m_id << "   " << NBpart_ptr->m_id <<"\n";
 
 		// Doesn't affect anything yet and it's not right
-		NeighboursCountingMode NBC_mode = NeighboursCountingMode::All;
+		NeighboursCountingMode NBC_mode = NeighboursCountingMode::REAL_AND_VIRTUAL;
 		switch (NBC_mode){
 		case(All):
 			mpart->addNeighbour();
@@ -331,7 +331,7 @@ public:
 		float smr = 0.025f;
 		float r = 0.f;
 		float dr = 0.01f * smr;
-		float factor = (15.f / (7.f * M_PI*pow(smr, 2)));
+		float factor = (15.0 / (7.0 * M_PI*pow(smr, 2)));
 		while (r < 2.f * smr) {
 			float W;
 			float dW;
@@ -339,12 +339,12 @@ public:
 			if ((r / smr >= 0) and (r / smr <= 1)){
 				W = factor * ((2.0 / 3.0 - pow(r / smr, 2) + pow(r / smr, 3) / 2.0));
 				dW = factor * (-2.0*r / smr / smr + 3.0 / 2.0*pow(r / smr, 2) / smr);
-				d2W = factor* (-2.0 / pow(smr, 2) + 3.0 * r / smr / pow(smr, 2));
+				d2W = factor * (3.0 / 2.0 * r / smr / pow(smr, 2));
 			}
 			if ((r / smr > 1) and (r / smr <= 2)){
 				W = factor * (1.0 / 6.0 * pow((2.0 - r / smr), 3));
 				dW = -factor / 2.0 * pow((2.0 - r / smr), 2) / smr;
-				d2W = factor * (2.f - r / smr) / pow(smr, 2);
+				d2W = factor * (1.f/2.f*(2.f*(2.f- r / smr) / pow(smr, 2)+ pow((2.f - r / smr), 2)/ (smr*r))) ;
 			}
 			if (r / smr > 2){
 				W = 0.f;

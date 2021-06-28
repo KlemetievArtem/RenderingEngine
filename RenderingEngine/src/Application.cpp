@@ -278,6 +278,7 @@ Application::Application(const char* title,
 	this->dt = 0.f;
 	this->curTime = 0.f;
 	this->lastTime = 0.f;
+	this->simTimeStep = 0.000001f;
 
 	this->lastMouseX = 0.f;
 	this->lastMouseY = 0.f;
@@ -746,8 +747,11 @@ void Application::render() {
 		ImGui::Text(i->getLocalStats(localnumber).c_str());
 	}
 
+	ImGui::SliderFloat("Simulation Maximum Time Step ", &this->simTimeStep, 0.000001f, 0.1f, "%.6f");
+	for (auto*&i : this->ComputationalDomains) {
+		i->setInitialDeltaTime(this->simTimeStep);
+	}
 
-	
 	ImGui::SliderFloat3("Mouse ", &cursorPosition.x, 0.0f, 1.0f,"%.3f",0.5f);
 
 	if (this->currentOption)
@@ -1070,7 +1074,7 @@ void Application::CompDomainInit() {
 	{
 		for (auto*&i : this->ComputationalDomains) {
 
-			i->setInitialDeltaTime(0.00005);
+			i->setInitialDeltaTime(this->simTimeStep);
 			i->setXminTo(0.f);
 			i->setXmaxTo(1.f);
 			i->setYminTo(0.f);
@@ -1107,6 +1111,7 @@ void Application::CompDomainInit() {
 			//CD_Boundaries[0]->addBC(new SourceBC(0.01, 0.0025,1.0, glm::vec3(1.0, 0.0, 0.0), meshes[0]));
 			//ÍÈÇ
 			CD_Boundaries.push_back(new BoundaryBase(meshes[1]));
+			//CD_Boundaries[1]->addBC(new PeriodicBC(meshes[3]));
 			CD_Boundaries[1]->addWallBC(glm::vec3(0.0, 0.0, 0.0));
 			//ÏÐÀÂÎ
 			CD_Boundaries.push_back(new BoundaryBase(meshes[2]));
@@ -1115,6 +1120,7 @@ void Application::CompDomainInit() {
 			//ÂÅÐÕ
 			if (true) {
 				CD_Boundaries.push_back(new BoundaryBase(meshes[3]));
+				//CD_Boundaries[3]->addBC(new PeriodicBC(meshes[1]));
 				CD_Boundaries[3]->addWallBC(glm::vec3(1.0, 0.0, 0.0));
 			}
 			else {

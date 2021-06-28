@@ -117,13 +117,66 @@ Matrix operator*(const Matrix& m, double f) {
 	return new_m;
 }
 
+Matrix operator+(Matrix & m1, Matrix & m2) {
+	assert(m1.getCols() >= 0 && m1.getCols() == m2.getCols());
+	assert(m1.getRows() >= 0 && m1.getRows() == m2.getRows());
+	int cols = m1.getCols();
+	int rows = m1.getRows();
+	Matrix retVal;
+	retVal.resize(rows, cols);
+	for (int r = 0;r < rows;r++) {
+		for (int c = 0;c < cols;c++) {
+			retVal(r, c) = m1(r, c) + m2(r, c);
+		}
+	}
+	return retVal;
+}
+
+
+Matrix operator-(Matrix & m1, Matrix & m2) {
+	assert(m1.getCols() >= 0 && m1.getCols() == m2.getCols());
+	assert(m1.getRows() >= 0 && m1.getRows() == m2.getRows());
+	int cols = m1.getCols();
+	int rows = m1.getRows();
+	Matrix retVal;
+	retVal.resize(rows, cols);
+	for (int r = 0;r < rows;r++) {
+		for (int c = 0;c < cols;c++) {
+			retVal(r, c) = m1(r, c) - m2(r, c);
+		}
+	}
+	return retVal;
+}
+
+
+
+
+
+Matrix operator*(double f, Matrix& m) {
+	Matrix new_m(m.getRows(), m.getCols());
+	for (int r = 0;r < m.getRows();r++) {
+		for (int c = 0;c < m.getCols();c++) {
+			new_m(r, c) = m(r, c) * f;
+		}
+	}
+	return new_m;
+}
+Matrix operator*(double f, const Matrix& m) {
+	Matrix new_m(m.getRows(), m.getCols());
+	for (int r = 0;r < m.getRows();r++) {
+		for (int c = 0;c < m.getCols();c++) {
+			new_m(r, c) = m(r, c) * f;
+		}
+	}
+	return new_m;
+}
+
+
 
 
 std::vector<double> operator*(Matrix& m, std::vector<double> vec) {
-
 	std::vector<double> new_vec;
 	new_vec.resize(m.getRows(), 0.f);
-
 	for (int r = 0;r < m.getRows();r++) {
 		for (int c = 0;c < m.getCols();c++) {
 			new_vec[r] += vec[c] * m(r, c);
@@ -134,10 +187,8 @@ std::vector<double> operator*(Matrix& m, std::vector<double> vec) {
 
 
 std::vector<double> operator*(const Matrix& m, std::vector<double> vec) {
-
 	std::vector<double> new_vec;
 	new_vec.resize(m.getRows(), 0.f);
-
 	for (int r = 0;r < m.getRows();r++) {
 		for (int c = 0;c < m.getCols();c++) {
 			new_vec[r] += vec[c] * m(r, c);
@@ -146,6 +197,37 @@ std::vector<double> operator*(const Matrix& m, std::vector<double> vec) {
 	return new_vec;
 }
 
+
+
+
+
+//уг вер
+std::vector<double> operator*(std::vector<double> vec, Matrix& m) {
+
+	std::vector<double> new_vec;
+	new_vec.resize(m.getRows(), 0.f);
+
+	for (int c = 0;c < m.getCols();c++) {
+		for (int r = 0;r < m.getRows();r++) {
+			new_vec[c] += vec[r] * m(r, c);
+		}
+	}
+	return new_vec;
+}
+
+
+std::vector<double> operator*(std::vector<double> vec, const Matrix& m) {
+
+	std::vector<double> new_vec;
+	new_vec.resize(m.getRows(), 0.f);
+
+	for (int c = 0;c < m.getCols();c++) {
+		for (int r = 0;r < m.getRows();r++) {
+			new_vec[c] += vec[r] * m(r, c);
+		}
+	}
+	return new_vec;
+}
 
 
 

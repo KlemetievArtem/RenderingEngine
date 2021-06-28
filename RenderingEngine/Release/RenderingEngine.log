@@ -21,8 +21,9 @@ d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(153): warn
           [
               T=float
           ]
-d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(162): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(125): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
 d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(165): warning C4305: =: усечение из "double" в "part_prec"
+d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(168): warning C4305: =: усечение из "double" в "part_prec"
 d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(43): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
 d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(44): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
 d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(50): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
@@ -70,19 +71,19 @@ d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(612
 d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(617): warning C4018: <: несоответствие типов со знаком и без знака
 d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(658): warning C4018: <: несоответствие типов со знаком и без знака
 d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(699): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\application.cpp(571): warning C4244: аргумент: преобразование "double" в "T", возможна потеря данных
-          with
-          [
-              T=float
-          ]
 d:\renderingengine\renderingengine\renderingengine\src\application.cpp(572): warning C4244: аргумент: преобразование "double" в "T", возможна потеря данных
           with
           [
               T=float
           ]
+d:\renderingengine\renderingengine\renderingengine\src\application.cpp(573): warning C4244: аргумент: преобразование "double" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
   Создание кода
-  42 of 4202 functions ( 1.0%) were compiled, the rest were copied from previous compilation.
+  1 of 4209 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    10 functions had inline decision re-evaluated but remain unchanged
+    4 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   RenderingEngine.vcxproj -> D:\RenderingEngine\RenderingEngine\Release\RenderingEngine.exe

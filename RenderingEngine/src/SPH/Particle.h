@@ -5,6 +5,7 @@
 //typedef glm::highp_dvec3 part_prec_3;
 typedef float part_prec;
 typedef glm::vec3 part_prec_3;
+typedef glm::mat3x3 part_prec_3_3;
 
 
 
@@ -51,7 +52,10 @@ public:
 
 	part_prec m_gamma;
 	part_prec_3 m_grad_gamma;
-	
+
+
+	part_prec m_SurfaceTension;
+	part_prec_3 m_normalToSurface;
 
 	part_prec dummyParameter;
 
@@ -60,11 +64,11 @@ public:
 		m_position.val = pos; m_position.dval = part_prec_3(0.0);
 		m_velocity.val = vel; m_velocity.dval = part_prec_3(0.0);
 		m_density.val = density; m_density.dval = part_prec(0.0);
-		//if (m_type == PARTICLETYPE::REAL)
+		//if (m_type == PARTICLETYPE::REAL){
 		p_art_water();
-		//else
-			//p_gas();
+		//} else { p_gas(); }
 		setDVisc();
+		setSurfTen();
 	}
 
 	Particle(Particle* part): Particle(part->m_id, part->m_type, part->m_position.val, part->m_velocity.val, part->m_SmR, part->m_density.val, part->m_mass){
@@ -74,6 +78,7 @@ public:
 		this->InitPolygonNormal = part->InitPolygonNormal;
 		this->m_pressure = part->m_pressure;
 		this->m_DVisc = part->m_DVisc;
+		this->m_SurfaceTension = part->m_SurfaceTension;
 	}
 
 	~Particle() {
@@ -111,16 +116,16 @@ public:
 		int Heat_capacity_ratio = 7;
 		setSoundVel(1480.0);
 		part_prec Pressure0 = 1.0E05;
-		part_prec b = 10000;
+		part_prec b = 100;
 
-		part_prec Dens0 = 1.0;
+		part_prec Dens0 = 1000.0;
 
 		//p = b * ((m_dens / Dens0)**Heat_capacity_ratio - 1)
 		//m_pressure.val = (b*pow((m_density.val / Dens0), Heat_capacity_ratio) - 1);
-		//m_pressure =  Dens0 * pow(m_SoundVelocity, 2) / static_cast<part_prec>(Heat_capacity_ratio) * (pow(m_density.val / Dens0, Heat_capacity_ratio) - static_cast<part_prec>(1.0));
+		m_pressure = 1.0 * Dens0 * pow(m_SoundVelocity, 2) / static_cast<part_prec>(Heat_capacity_ratio) * (pow(m_density.val / Dens0, Heat_capacity_ratio) - static_cast<part_prec>(1.0));
 		//m_pressure.val = pow(m_SoundVelocity, 2)  * (m_density.val - Dens0);
 
-		m_pressure =  b* (pow(m_density.val / Dens0, Heat_capacity_ratio) - static_cast<part_prec>(1.0));
+		//m_pressure =  b* (pow(m_density.val / Dens0, Heat_capacity_ratio) - static_cast<part_prec>(1.0));
 
 		//m_pressure.val = b * ((m_density.val- Dens0) / Dens0);
 
@@ -152,17 +157,15 @@ private:
 		m_SoundVelocity = val;
 	}
 
-
+	
 	void setDVisc() {
-		if (m_type == PARTICLETYPE::REAL)
-			m_DVisc = 0;
-		if (m_type == PARTICLETYPE::VIRTUAL)
-			m_DVisc = 0;
-		if (m_type == PARTICLETYPE::BOUNDARY)
-			m_DVisc = 1.0E-03;
-
-
+		//if (m_type == PARTICLETYPE::REAL) m_DVisc = 0;
+		//if (m_type == PARTICLETYPE::VIRTUAL) m_DVisc = 0;
+		//if (m_type == PARTICLETYPE::BOUNDARY) m_DVisc = 1.0E-03;
 		m_DVisc = 1000E-06;
+	}
+	void setSurfTen() {
+		m_SurfaceTension = 60E-03;
 	}
 public: 
 	glm::vec3 InitPolygonNormal;// = glm::vec3(0.f);

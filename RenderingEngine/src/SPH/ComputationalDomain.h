@@ -104,7 +104,7 @@ struct SPH_OPTIONS {
 
 	DISTRIBUTION distributionREAL = UNIFORM; // RANDOM UNIFORM
 	DISTRIBUTION distributionBOUNDARY = UNIFORM; // RANDOM UNIFORM
-	TIME_INTEGRATION_SCHEME timeIntegrationScheme = SECOND_ORDER_SCEME; // EXPLICIT IMPLICIT SEMI_IMPICIT SECOND_ORDER_SCEME NONE
+	TIME_INTEGRATION_SCHEME timeIntegrationScheme = EXPLICIT; // EXPLICIT IMPLICIT SEMI_IMPICIT SECOND_ORDER_SCEME NONE
 	BOUNDARY_HANDLING boundary_handling = MIRROR_PARTICLES; // MIRROR_PARTICLES RENORMALIZATION
 	// true  false
 	bool firstCycle = true;
@@ -112,6 +112,15 @@ struct SPH_OPTIONS {
 	bool IsStab = false;
 	bool Density_Diffusion_term = false;
 	bool BoundaryCalculation = false;
+	bool CalcGamma = true;
+
+
+	bool PressurePartCalc = true;
+	bool ViscosityPartCalc = true;
+	bool SurfaceTensionPartCalc = false;
+
+
+	bool TimeStepSizing = true;
 
 	part_prec_3 average_dim_steps;
 
@@ -120,6 +129,7 @@ struct SPH_OPTIONS {
 
 	std::vector<Equation*> MomentumConservation_PressureParts;
 	std::vector<Equation*> MomentumConservation_ViscosityParts;
+	std::vector<Equation*> MomentumConservation_SurfaceTensionParts;
 	std::vector<TimeEquation*> VelocityUpdates;
 
 	std::vector<TimeEquation*> PositionUpdates;

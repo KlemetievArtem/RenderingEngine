@@ -3,9 +3,10 @@
 //part_prec InitialSmR = 0.0125;
 //part_prec InitialSmR = 0.025;
 //part_prec InitialSmR = 0.0323;
-part_prec InitialSmR = 0.0375;
+//part_prec InitialSmR = 0.0375;
+part_prec InitialSmR = 0.02;
 //part_prec InitialSmR = 1.0/44.0;
-part_prec Dens0 = 1.0;
+part_prec Dens0 = 1000.0;
 
 float getRandomNumber(float min, float max) {
 	static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);
@@ -64,6 +65,77 @@ void SPH_CD::EquationsInitialization() {
 	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
 		std::cout << "SPH_CD::EquationsInitialization\n";
 	}
+	// ХУЙНЯ - УЖАС
+
+	// Поправочный фактор
+	if (m_options.CalcGamma) {
+		m_options.RenormalizationEquation = new Equation(new RenormalizationFactors());
+		m_options.RenormalizationEquation->addParticleType(REAL, ACTIVE);
+		m_options.RenormalizationEquation->addParticleType(BOUNDARY, REACTIVE);
+	}
+	// Уравнение неразрывности
+	m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval())); // 2
+	if (m_options.boundary_handling == RENORMALIZATION) {
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, ACTIVE);
+	}
+	else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, ACTIVE);
+		//m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+	}
+	m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL())); // EmptyTimeFunction
+	m_options.DensityUpdates[m_options.DensityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
+	// Плотности граничных частиц
+	m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
+	if (m_options.boundary_handling == RENORMALIZATION) {
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, PASSIVE);
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(BOUNDARY, REACTIVE);
+	}
+	else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(REAL, PASSIVE);
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+		m_options.ContinuityEquations[m_options.ContinuityEquations.size() - 1]->addParticleType(BOUNDARY, REACTIVE);
+	}
+	m_options.DensityUpdates.push_back(new TimeEquation(new DensityUpdate_DVAL()));
+	m_options.DensityUpdates[m_options.DensityUpdates.size() - 1]->addParticleType(BOUNDARY, ACTIVE);
+
+	//    Empty_Function    K2_VelPressurePart_dval    K2_VelViscosityPart_dval    VelSurfaceTensionPart_dval
+	// Уравнение сохранения импульса, член с давлением 
+	if (m_options.PressurePartCalc) {
+		if (m_options.boundary_handling == RENORMALIZATION) {
+			m_options.RenormalizationPressuerPartEquation = new Equation(new Renormalization_K2_VelPressurePart());
+			m_options.RenormalizationPressuerPartEquation->addParticleType(REAL, ACTIVE);
+		}
+		else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+			m_options.MomentumConservation_PressureParts.push_back(new Equation(new K1_VelPressurePart_dval())); //2
+			m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(REAL, ACTIVE);
+			m_options.MomentumConservation_PressureParts[m_options.MomentumConservation_PressureParts.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+		}
+	}
+	// Уравнение сохранения импульса, член с вязкостью
+	if (m_options.ViscosityPartCalc) {
+		m_options.MomentumConservation_ViscosityParts.push_back(new Equation(new K2_VelViscosityPart_dval())); //2
+		m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(REAL, ACTIVE);
+		if (m_options.boundary_handling == RENORMALIZATION) {
+			m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(BOUNDARY, PASSIVE);
+		}
+		else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+			m_options.MomentumConservation_ViscosityParts[m_options.MomentumConservation_ViscosityParts.size() - 1]->addParticleType(VIRTUAL, PASSIVE);
+		}
+	}
+	// Уравнение сохранения импульса, член с поверхностным натяжением
+	if (m_options.SurfaceTensionPartCalc) {
+		m_options.MomentumConservation_SurfaceTensionParts.push_back(new Equation(new VelSurfaceTensionPart_dval()));
+		m_options.MomentumConservation_SurfaceTensionParts[m_options.MomentumConservation_SurfaceTensionParts.size() - 1]->addParticleType(REAL, ACTIVE);
+	}
+
+
+	m_options.VelocityUpdates.push_back(new TimeEquation(new VelocityUpdate_DVAL()));
+	m_options.VelocityUpdates[m_options.VelocityUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
+
+	m_options.PositionUpdates.push_back(new TimeEquation(new PositionUpdate_add()));
+	m_options.PositionUpdates[m_options.PositionUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
+
+	/*
 	if (m_options.boundary_handling == RENORMALIZATION) {
 
 		m_options.ContinuityEquations.push_back(new Equation(new K1_ContinuityEquation_dval()));
@@ -140,7 +212,7 @@ void SPH_CD::EquationsInitialization() {
 		m_options.PositionUpdates[m_options.PositionUpdates.size() - 1]->addParticleType(REAL, ACTIVE);
 
 	}
-
+	*/
 
 }
 void SPH_CD::RealParticlesInitialization(int nrOfParticlesForVolume, glm::vec3 positionMin, glm::vec3 positionMax, glm::vec3 velocity = glm::vec3(0.0f, 0.f, 0.f), part_prec smR = InitialSmR, part_prec density = Dens0){
@@ -683,6 +755,13 @@ void SPH_CD::Initilization(glm::vec3 velocity, std::vector<BoundaryBase*>* activ
 
 	glm::vec3 positionMin(minX, minY, minZ);
 	glm::vec3 positionMax(maxX, maxY, maxZ);
+
+	//positionMin = { 0.25,0.25,0.0 };
+	//positionMax = { 0.75,0.75,0.0 };
+
+	//positionMin = { -0.65,-0.65,0.0 };
+	//positionMax = { 2.02,2.02,0.0 };
+
 	//std::cout << nrOfParticlesForVolume << "\n";
 	//std::cout << positionMin.x << "," << positionMin.y << "," << positionMin.z << " - " << positionMax.x - positionMin.x << "," << positionMax.y - positionMin.y << "," << positionMax.z - positionMin.z << "\n";
 	RealParticlesInitialization(nrOfParticlesForVolume, positionMin, positionMax);
@@ -1162,8 +1241,10 @@ void SPH_CD::timeStep_thread(cd_prec dt, std::atomic<bool>& dataReadyForRender, 
 		std::cout << "Current Time: " << getCurrentTime() << "\n";
 		std::cout << "current timeStep: " << getDeltaTime() << "   minimal time scale: " << getStatMinTime() << "\n";
 	}
-	if (getStatMinTime() < getDeltaTime()) { setDeltaTime(getStatMinTime()); }
-	else { setDeltaTime(getInitialDeltaTime()); }
+	if(m_options.TimeStepSizing){
+		if (getStatMinTime() < getDeltaTime()) { setDeltaTime(getStatMinTime()); }
+		else { setDeltaTime(getInitialDeltaTime()); }
+	}
 }
 
 void SPH_CD::timeStep(cd_prec dt) {
@@ -1306,7 +1387,7 @@ void SPH_CD::neighbourSearch() {
 
 		for (auto*& i : SPH.Particles) { i->m_mass = mass; }
 		//choose
-		for (auto*& i : SPH.Particles) { i->m_mass = i->m_density.val*m_options.average_dim_steps.x*m_options.average_dim_steps.y*m_options.average_dim_steps.z; }
+		//for (auto*& i : SPH.Particles) { i->m_mass = i->m_density.val*m_options.average_dim_steps.x*m_options.average_dim_steps.y*m_options.average_dim_steps.z; }
 		//deletingParticlePairs();
 		
 
@@ -1482,7 +1563,7 @@ void SPH_CD::creatingVirtualParticles() {
 								part_prec_3 distanceToPeriodic_part = { distanceToPeriodic.x,distanceToPeriodic.y,distanceToPeriodic.z };
 
 								//virtualPosition += SPH.Particles[real_p->m_id]->VirtualCounterpartNormals[0] * SPH.Particles[real_p->m_id]->VC_DistanceToBoundary[0];
-								virtualPosition += BM.BoundaryLinks[real_p->m_id].firstDistanceVector();
+								virtualPosition += BM.BoundaryLinks[real_p->m_id].firstDistanceToPeriodic();
 
 								//std::cout << "From periodic to periodic\n";
 							}
@@ -1987,6 +2068,29 @@ void SPH_CD::Coloring() {
 			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
 		}
 	}
+	else if (ColoringParameter == "dV/dt") {
+		ColoringUnknow = false;
+		changeColorParamTo("dV/dt");
+		float maxVal = sqrt(pow(SPH.Particles[0]->m_velocity.dval.x,2) + pow(SPH.Particles[0]->m_velocity.dval.y,2) + pow(SPH.Particles[0]->m_velocity.dval.z,2));
+		float minVal = sqrt(pow(SPH.Particles[0]->m_velocity.dval.x, 2) + pow(SPH.Particles[0]->m_velocity.dval.y, 2) + pow(SPH.Particles[0]->m_velocity.dval.z, 2));
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (sqrt(pow(i->m_velocity.dval.x, 2) + pow(i->m_velocity.dval.y, 2) + pow(i->m_velocity.dval.z, 2)) < minVal) { minVal = sqrt(pow(i->m_velocity.dval.x, 2) + pow(i->m_velocity.dval.y, 2) + pow(i->m_velocity.dval.z, 2)); }
+				if (sqrt(pow(i->m_velocity.dval.x, 2) + pow(i->m_velocity.dval.y, 2) + pow(i->m_velocity.dval.z, 2)) > maxVal) { maxVal = sqrt(pow(i->m_velocity.dval.x, 2) + pow(i->m_velocity.dval.y, 2) + pow(i->m_velocity.dval.z, 2)); }
+			}
+		}
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = sqrt(pow(i->m_velocity.dval.x, 2) + pow(i->m_velocity.dval.y, 2) + pow(i->m_velocity.dval.z, 2));
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
 	else if (ColoringParameter == "Density") {
 		ColoringUnknow = false;
 		changeColorParamTo("Density");
@@ -2171,6 +2275,29 @@ void SPH_CD::Coloring() {
 			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
 		}
 	}
+	else if (ColoringParameter == "dgamma") {
+		ColoringUnknow = false;
+		changeColorParamTo("gamma");
+		float maxVal = sqrt(pow(SPH.Particles[0]->m_grad_gamma.x, 2) + pow(SPH.Particles[0]->m_grad_gamma.y, 2) + pow(SPH.Particles[0]->m_grad_gamma.z, 2));
+		float minVal = sqrt(pow(SPH.Particles[0]->m_grad_gamma.x, 2) + pow(SPH.Particles[0]->m_grad_gamma.y, 2) + pow(SPH.Particles[0]->m_grad_gamma.z, 2));
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)) < minVal) { minVal = sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)); }
+				if (sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)) > maxVal) { maxVal = sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)); }
+			}
+		}
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2));
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
 	else if (ColoringParameter == "mass") {
 		changeColorParamTo("mass");
 		float maxVal = SPH.Particles[0]->m_mass;
@@ -2189,6 +2316,54 @@ void SPH_CD::Coloring() {
 		for (auto*& i : SPH.Particles) {
 			if (ColoringCondition(*i)) {
 				currentVal = i->m_mass;
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
+	else if (ColoringParameter == "SurfaceNormal_x") {
+		changeColorParamTo("mass");
+		float maxVal = SPH.Particles[0]->m_normalToSurface.x;
+		float minVal = SPH.Particles[0]->m_normalToSurface.x;
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (i->m_normalToSurface.x < minVal) { minVal = i->m_normalToSurface.x; }
+				if (i->m_normalToSurface.x > maxVal) { maxVal = i->m_normalToSurface.x; }
+			}
+		}
+		float aveVal = (minVal + maxVal) / 2;
+
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = i->m_normalToSurface.x;
+				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
+				continue;
+			}
+			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
+		}
+	}
+	else if (ColoringParameter == "SurfaceNormal_y") {
+		changeColorParamTo("mass");
+		float maxVal = SPH.Particles[0]->m_normalToSurface.y;
+		float minVal = SPH.Particles[0]->m_normalToSurface.y;
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				if (i->m_normalToSurface.y < minVal) { minVal = i->m_normalToSurface.y; }
+				if (i->m_normalToSurface.y > maxVal) { maxVal = i->m_normalToSurface.y; }
+			}
+		}
+		float aveVal = (minVal + maxVal) / 2;
+
+		m_maxVal = maxVal;
+		m_minVal = minVal;
+
+		for (auto*& i : SPH.Particles) {
+			if (ColoringCondition(*i)) {
+				currentVal = i->m_normalToSurface.y;
 				i->m_color = ColoringGradient(maxVal, minVal, currentVal);
 				continue;
 			}
@@ -2218,6 +2393,8 @@ void SPH_CD::Coloring() {
 			i->m_color = glm::vec3(0.9f, 0.9f, 0.9f);
 		}
 	}
+
+	
 	//else {
 	//	changeColorParamTo("nrOfNeighbours");
 	//	float maxVal = SPH.Particles[0]->nrOfNeighbours;
@@ -3708,15 +3885,56 @@ void SPH_CD::DensityRecalculation() {
 	std::vector<part_prec> drhodt;
 	drhodt.resize(SPH.Particles.size(), 0.f);
 	std::vector<part_prec> gamma;
-	gamma.resize(SPH.Particles.size(), 0.f);
 	std::vector<part_prec_3> gamma_deriv;
-	gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+
+	if (m_options.CalcGamma) {
+		gamma.resize(SPH.Particles.size(), 0.f);
+		gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+	}
+
+
+	std::vector<part_prec> dens_diff;
+	double ksi = 0.2;
+	if (m_options.Density_Diffusion_term) {
+		dens_diff.resize(SPH.Particles.size(), 0.f);
+	}
+
+
+	for (auto* i : SPH.ParticlePairs) {
+		for (auto ce : m_options.ContinuityEquations) { ce->Calc(&drhodt, i); }
+		if (m_options.CalcGamma) {
+			m_options.RenormalizationEquation->Calc(&gamma, i);
+			m_options.RenormalizationEquation->Calc(&gamma_deriv, i, nrOfDim);
+		}
+	}
+	for (auto*& i : SPH.Particles) {
+		if (m_options.CalcGamma) {
+			i->m_gamma = gamma[i->m_id];
+			i->m_grad_gamma = gamma_deriv[i->m_id];
+			if (m_options.SurfaceTensionPartCalc) {
+				if (sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)) < 1.0) { i->m_normalToSurface = part_prec_3(0.0, 0.0, 0.0); }
+				else {
+					i->m_normalToSurface = gamma_deriv[i->m_id] / sqrt(glm::dot(gamma_deriv[i->m_id], gamma_deriv[i->m_id]));
+				}
+			}
+		}
+
+		if (m_options.boundary_handling == RENORMALIZATION) {
+			assert("SPH_CD::DensityRecalculation:   m_options.CalcGamma = " && m_options.CalcGamma);
+			i->m_density.dval = drhodt[i->m_id] / i->m_gamma - (i->m_density.val* dot(i->m_grad_gamma, i->m_velocity.val)) / i->m_gamma;
+		}
+		else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+			i->m_density.dval = drhodt[i->m_id];
+		}
+
+		if (m_options.Density_Diffusion_term) { i->m_density.dval += dens_diff[i->m_id]; }
+	}
+
+	/*
 	if (m_options.boundary_handling == RENORMALIZATION) {
 		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
-			for (auto ce : m_options.ContinuityEquations) {
-				ce->Calc(&drhodt, i);
-			}
+			for (auto ce : m_options.ContinuityEquations) { ce->Calc(&drhodt, i); }
 			m_options.RenormalizationEquation->Calc(&gamma, i);
 			m_options.RenormalizationEquation->Calc(&gamma_deriv, i, nrOfDim);
 			//if (PPL_BOTH_PARTICLES_ARE(REAL, i)) {
@@ -3729,6 +3947,7 @@ void SPH_CD::DensityRecalculation() {
 			//std::cout << drhodt[i->m_id] << "   " << gamma[i->m_id] <<"   "<< i->m_density.val << "   " << dot(gamma_deriv[i->m_id], i->m_velocity.val)  << "\n";
 			i->m_gamma = gamma[i->m_id];
 			i->m_grad_gamma = gamma_deriv[i->m_id];
+			i->m_normalToSurface = gamma_deriv[i->m_id]/sqrt(glm::dot(gamma_deriv[i->m_id], gamma_deriv[i->m_id]));
 			i->m_density.dval = drhodt[i->m_id] / i->m_gamma - (i->m_density.val* dot(i->m_grad_gamma, i->m_velocity.val)) / i->m_gamma;
 		}
 
@@ -3742,6 +3961,7 @@ void SPH_CD::DensityRecalculation() {
 			i->m_density.dval = drhodt[i->m_id];
 		}
 	}
+	*/
 }
 
 void SPH_CD::VelocityRecalculation() {
@@ -3749,11 +3969,82 @@ void SPH_CD::VelocityRecalculation() {
 	dvdt_press.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
 	std::vector<part_prec_3> dvdt_dvisc;
 	dvdt_dvisc.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
-	if (m_options.boundary_handling == RENORMALIZATION) {
-		std::vector<part_prec> gamma;
+
+	std::vector<part_prec_3> dvdt_dsurf;
+	if (m_options.SurfaceTensionPartCalc) {
+		dvdt_dsurf.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+	}
+
+	std::vector<part_prec> gamma;
+	std::vector<part_prec_3> gamma_deriv;
+
+
+	if (m_options.CalcGamma) {
 		gamma.resize(SPH.Particles.size(), 0.f);
-		std::vector<part_prec_3> gamma_deriv;
 		gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+	}
+	if (m_options.CalcGamma) {
+		for (auto* i : SPH.ParticlePairs) {
+			m_options.RenormalizationEquation->Calc(&gamma, i);
+			m_options.RenormalizationEquation->Calc(&gamma_deriv, i, nrOfDim);
+		}
+		for (auto*& i : SPH.Particles) {
+			i->m_gamma = gamma[i->m_id];
+			i->m_grad_gamma = gamma_deriv[i->m_id];
+			if (m_options.SurfaceTensionPartCalc) {
+				if (sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)) < 1.0) { i->m_normalToSurface = part_prec_3(0.0, 0.0, 0.0); }
+				else {
+					i->m_normalToSurface = gamma_deriv[i->m_id] / sqrt(glm::dot(gamma_deriv[i->m_id], gamma_deriv[i->m_id]));
+				}
+			}
+		}
+	}
+
+
+	for (auto* i : SPH.ParticlePairs) {
+		//Viscosity part
+		if (m_options.ViscosityPartCalc) {
+			for (auto mc_vp : m_options.MomentumConservation_ViscosityParts) { mc_vp->Calc(&dvdt_dvisc, i, nrOfDim); }
+		}
+		//Pressure part
+		if (m_options.PressurePartCalc) {
+			if (m_options.boundary_handling == RENORMALIZATION) {
+				m_options.RenormalizationPressuerPartEquation->Calc(&dvdt_press, i, nrOfDim);
+			}
+			else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+				for (auto mc_pp : m_options.MomentumConservation_PressureParts) { mc_pp->Calc(&dvdt_press, i, nrOfDim); }
+			}
+		}
+		//Surface tension part
+		if (m_options.SurfaceTensionPartCalc) {
+			for (auto mc_sp : m_options.MomentumConservation_SurfaceTensionParts) { mc_sp->Calc(&dvdt_dsurf, i, nrOfDim); }
+		}
+	}
+	for (auto*& i : SPH.Particles) {
+		if (m_options.boundary_handling == RENORMALIZATION) {
+			assert("SPH_CD::VelocityRecalculation:   m_options.CalcGamma = " && m_options.CalcGamma);
+			if (m_options.PressurePartCalc) { i->m_velocity.dval = (dvdt_press)[i->m_id] + i->m_pressure / i->m_density.val*i->m_grad_gamma / i->m_gamma; }
+			else { i->m_velocity.dval = { 0.0,0.0,0.0 }; }
+			if (m_options.ViscosityPartCalc) { i->m_velocity.dval += (dvdt_dvisc)[i->m_id]; }
+		}
+		else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+			if (m_options.PressurePartCalc) { i->m_velocity.dval = (dvdt_press)[i->m_id]; }
+			else { i->m_velocity.dval = { 0.0,0.0,0.0 }; }
+			if (m_options.ViscosityPartCalc) { i->m_velocity.dval += (dvdt_dvisc)[i->m_id]; }
+		}
+		//Surface Tension
+		if (m_options.SurfaceTensionPartCalc) {
+			if (sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)) < 1.0) {}
+			else {
+				i->m_velocity.dval += (dvdt_dsurf)[i->m_id];
+			}
+		}
+	}
+
+
+
+	/*
+	if (m_options.boundary_handling == RENORMALIZATION) {
 		//first cycle
 		for (auto* i : SPH.ParticlePairs) {
 			m_options.RenormalizationEquation->Calc(&gamma, i);
@@ -3766,6 +4057,7 @@ void SPH_CD::VelocityRecalculation() {
 		for (auto*& i : SPH.Particles) {
 			i->m_gamma = gamma[i->m_id];
 			i->m_grad_gamma = gamma_deriv[i->m_id];
+			i->m_normalToSurface = gamma_deriv[i->m_id] / sqrt(glm::dot(gamma_deriv[i->m_id], gamma_deriv[i->m_id]));
 		}
 		//second cycle
 		for (auto* i : SPH.ParticlePairs) {
@@ -3796,6 +4088,7 @@ void SPH_CD::VelocityRecalculation() {
 			//std::cout << i->m_id << ",  PressurePart{" << (dvdt_press)[i->m_id].x << ", " << (dvdt_press)[i->m_id].y << "}, ViscosityPart{" << (dvdt_dvisc)[i->m_id].x << ", " << (dvdt_dvisc)[i->m_id].y << "} \n";
 		}
 	}
+	*/
 }
 
 void SPH_CD::DensityAndVelocityRecalculation(){
@@ -3805,16 +4098,103 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 	dvdt_press.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
 	std::vector<part_prec_3> dvdt_dvisc;
 	dvdt_dvisc.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+	std::vector<part_prec_3> dvdt_dsurf;
+	if (m_options.SurfaceTensionPartCalc) {
+		dvdt_dsurf.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+	}
+
 	std::vector<part_prec> gamma;
 	std::vector<part_prec_3> gamma_deriv;
-	std::vector<part_prec> dens_diff;
-	//std::cout << " = " << drhodt[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1] <<" "<< SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_density.dval<< "\n";
+	if (m_options.CalcGamma) {
+		gamma.resize(SPH.Particles.size(), 0.f);
+		gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
+	}
 
+	std::vector<part_prec> dens_diff;
 	double ksi = 0.2;
 	if (m_options.Density_Diffusion_term) {
 		dens_diff.resize(SPH.Particles.size(), 0.f);
 	}
 
+	//std::cout << " = " << drhodt[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1] <<" "<< SPH.Particles[m_options.nrOfParticles[PARTICLETYPE::REAL] - 1]->m_density.dval<< "\n";
+
+	
+	if (m_options.CalcGamma) {
+		for (auto* i : SPH.ParticlePairs) {
+			m_options.RenormalizationEquation->Calc(&gamma, i);
+			m_options.RenormalizationEquation->Calc(&gamma_deriv, i, nrOfDim);
+		}
+		for (auto*& i : SPH.Particles) {
+			i->m_gamma = gamma[i->m_id];
+			i->m_grad_gamma = gamma_deriv[i->m_id];
+			if (m_options.SurfaceTensionPartCalc) {
+				if (sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)) < 1.0) { i->m_normalToSurface = part_prec_3(0.0, 0.0, 0.0); }
+				else {
+					i->m_normalToSurface = gamma_deriv[i->m_id] / sqrt(glm::dot(gamma_deriv[i->m_id], gamma_deriv[i->m_id]));
+				}
+			}
+		}
+	}
+
+
+
+	for (auto* i : SPH.ParticlePairs) {
+		//Density
+		for (auto *& ce : m_options.ContinuityEquations) { ce->Calc(&drhodt, i); }
+		//Viscosity part
+		if (m_options.ViscosityPartCalc) {
+			for (auto mc_vp : m_options.MomentumConservation_ViscosityParts) { mc_vp->Calc(&dvdt_dvisc, i, nrOfDim); }
+		}
+		//Pressure part
+		if (m_options.PressurePartCalc) {
+			if (m_options.boundary_handling == RENORMALIZATION) {
+				m_options.RenormalizationPressuerPartEquation->Calc(&dvdt_press, i, nrOfDim);
+			}
+			else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+				for (auto mc_pp : m_options.MomentumConservation_PressureParts) { mc_pp->Calc(&dvdt_press, i, nrOfDim); }
+			}
+		}
+		//Surface tension part
+		if (m_options.SurfaceTensionPartCalc) {
+			for (auto mc_sp : m_options.MomentumConservation_SurfaceTensionParts) { mc_sp->Calc(&dvdt_dsurf, i, nrOfDim); }
+		}
+	}
+	for (auto*& i : SPH.Particles) {
+		//if(i->m_id == 1935) {
+		//	std::cout << i->m_id << " ";
+		//	if (m_options.PressurePartCalc) std::cout << ((dvdt_press)[i->m_id]).x << ", " << ((dvdt_press)[i->m_id]).y << " - ";
+		//	if (m_options.ViscosityPartCalc) std::cout << ((dvdt_dvisc)[i->m_id]).x << ", " << ((dvdt_dvisc)[i->m_id]).y << " - ";
+		//	if (m_options.SurfaceTensionPartCalc) std::cout << ((dvdt_dsurf)[i->m_id]).x << ", " << ((dvdt_dsurf)[i->m_id]).y << " - ";
+		//	std::cout << "\n";
+		//}
+
+		if (m_options.boundary_handling == RENORMALIZATION) {
+			assert("SPH_CD::DensityAndVelocityRecalculation:   m_options.CalcGamma = " && m_options.CalcGamma);
+			i->m_density.dval = drhodt[i->m_id] / i->m_gamma - (i->m_density.val* dot(i->m_grad_gamma, i->m_velocity.val)) / i->m_gamma;
+			if (m_options.Density_Diffusion_term) { i->m_density.dval += dens_diff[i->m_id]; }
+			if (m_options.PressurePartCalc) { i->m_velocity.dval = (dvdt_press)[i->m_id] + i->m_pressure / i->m_density.val*i->m_grad_gamma / i->m_gamma; }
+			else { i->m_velocity.dval = { 0.0,0.0,0.0 }; }
+			if (m_options.ViscosityPartCalc) { i->m_velocity.dval += (dvdt_dvisc)[i->m_id]; }
+		}
+		else if (m_options.boundary_handling == MIRROR_PARTICLES) {
+			i->m_density.dval = drhodt[i->m_id];
+			if (m_options.Density_Diffusion_term) { i->m_density.dval += dens_diff[i->m_id]; }
+			if (m_options.PressurePartCalc) { i->m_velocity.dval = (dvdt_press)[i->m_id]; } else { i->m_velocity.dval = { 0.0,0.0,0.0 }; }
+			if (m_options.ViscosityPartCalc) { i->m_velocity.dval += (dvdt_dvisc)[i->m_id]; }
+		}
+		//Surface Tension
+		if (m_options.SurfaceTensionPartCalc) {
+			if (sqrt(pow(i->m_grad_gamma.x, 2) + pow(i->m_grad_gamma.y, 2) + pow(i->m_grad_gamma.z, 2)) < 1.0) { }
+			else {
+				i->m_velocity.dval += (dvdt_dsurf)[i->m_id];
+			}
+		}
+
+	}
+
+
+
+	/*
 	if (m_options.boundary_handling == RENORMALIZATION) {
 		gamma.resize(SPH.Particles.size(), 0.f);
 		gamma_deriv.resize(SPH.Particles.size(), { 0.0,0.0,0.0 });
@@ -3839,6 +4219,7 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 		for (auto*& i : SPH.Particles) {
 			i->m_gamma = gamma[i->m_id];
 			i->m_grad_gamma = gamma_deriv[i->m_id];
+			i->m_normalToSurface = gamma_deriv[i->m_id] / sqrt(glm::dot(gamma_deriv[i->m_id], gamma_deriv[i->m_id]));
 		}
 		//second cycle
 		for (auto* i : SPH.ParticlePairs) {
@@ -3891,6 +4272,8 @@ void SPH_CD::DensityAndVelocityRecalculation(){
 			i->m_velocity.dval = (dvdt_dvisc)[i->m_id] + (dvdt_press)[i->m_id];
 		}
 	}
+	*/
+
 	//std::cout << "id" << " " << "\t  drho" << " " << "\t  dv_visc.x" << ", " << "\t  dv_visc.y" << " " << "\t  dv_press.x" << ", " << "\t  dv_press.y" << "\n";
 	//for (auto*& i : SPH.Particles) {
 	//	if(i->m_type == REAL){
@@ -3971,6 +4354,11 @@ std::string SPH_CD::getLocalStats(int number) {
 		if (nrOfDim > 0) { stats << std::to_string(SPH.Particles[number]->m_grad_gamma.x); }
 		if (nrOfDim > 1) { stats << ", " << std::to_string(SPH.Particles[number]->m_grad_gamma.y); }
 		if (nrOfDim > 2) { stats << ", " << std::to_string(SPH.Particles[number]->m_grad_gamma.z); }
+		stats << "}\n";
+		stats << "Normal to surface:{";
+		if (nrOfDim > 0) { stats << std::to_string(SPH.Particles[number]->m_normalToSurface.x); }
+		if (nrOfDim > 1) { stats << ", " << std::to_string(SPH.Particles[number]->m_normalToSurface.y); }
+		if (nrOfDim > 2) { stats << ", " << std::to_string(SPH.Particles[number]->m_normalToSurface.z); }
 		stats << "}\n";
 		stats << "Time derivatives:\n";
 		stats << "dr/dt:{";
