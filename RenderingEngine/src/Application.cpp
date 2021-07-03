@@ -991,11 +991,10 @@ void Application::CursorUpdate() {
 
 //COMPUTATIONAL DOMAIN
 void Application::CompDomainInit() {
-	SPH_OPTIONS options;
-	options.nrOfParticles[PARTICLETYPE::REAL] = 2000;
-	options.nrOfParticles[PARTICLETYPE::BOUNDARY] = 280;
-	options.nrOfParticles[PARTICLETYPE::VIRTUAL] = 0;
-	this->ComputationalDomains.push_back(new SPH_CD(options, D2));
+	FVM_OPTIONS options;
+	options.nrOfFVinDir.x = 4;
+	options.nrOfFVinDir.y = 4;
+	this->ComputationalDomains.push_back(new FVM_CD(options, D2));
 
 	for (auto*&i : this->ComputationalDomains) {
 		if (application_mode == MODE::RUNNING) { i->setModeToRUNNING();	}

@@ -33,7 +33,8 @@ public:
 
 enum MICROCOSME
 {
-	MC_SPH
+	MC_SPH,
+	MC_FVM
 };
 
 struct CompDomainStatystic {

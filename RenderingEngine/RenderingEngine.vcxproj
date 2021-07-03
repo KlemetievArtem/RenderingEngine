@@ -26,6 +26,9 @@
     <ClInclude Include="src\Events\Event.h" />
     <ClInclude Include="src\Events\KeyEvent.h" />
     <ClInclude Include="src\Events\MouseEvent.h" />
+    <ClInclude Include="src\FVM\ComputationalDomain.h" />
+    <ClInclude Include="src\FVM\FiniteVolume.h" />
+    <ClInclude Include="src\FVM\FVMesh.h" />
     <ClInclude Include="src\libs.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MatrixSimp.h" />
@@ -63,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\FVM\ComputationalDomain.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MatrixSimp.cpp" />
     <ClCompile Include="src\Mesh.cpp" />

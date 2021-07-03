@@ -1,4 +1,5 @@
-﻿  Application.cpp
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(944,5): warning MSB8027: два или более файлов с именем ComputationalDomain.cpp выводят результаты в одно и то же расположение. Это может стать причиной неверного результата сборки.  Включенные файлы — src\FVM\ComputationalDomain.cpp, src\SPH\ComputationalDomain.cpp.
+  Application.cpp
 d:\renderingengine\renderingengine\renderingengine\src\mesh.h(392): warning C4244: +=: преобразование "double" в "float", возможна потеря данных
 d:\renderingengine\renderingengine\renderingengine\src\mesh.h(407): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
 d:\renderingengine\renderingengine\renderingengine\src\mesh.h(422): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
@@ -6,71 +7,49 @@ d:\renderingengine\renderingengine\renderingengine\src\mesh.h(437): warning C424
 d:\renderingengine\renderingengine\renderingengine\src\mesh.h(453): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
 d:\renderingengine\renderingengine\renderingengine\src\mesh.h(468): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
 d:\renderingengine\renderingengine\renderingengine\src\mesh.h(483): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(147): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(197): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
           with
           [
               T=float
           ]
-d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(150): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(200): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
           with
           [
               T=float
           ]
-d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(153): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(203): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
           with
           [
               T=float
           ]
-d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(125): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(165): warning C4305: =: усечение из "double" в "part_prec"
-d:\renderingengine\renderingengine\renderingengine\src\sph\particle.h(168): warning C4305: =: усечение из "double" в "part_prec"
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(43): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(44): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(50): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(51): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(57): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(64): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(71): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(72): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(85): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(86): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(93): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(94): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(95): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(101): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(102): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(103): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(109): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(110): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(111): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(117): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(118): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(119): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(135): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(139): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(143): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(147): warning C4244: инициализация: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\particlepair.h(167): warning C4244: =: преобразование "double" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(69): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(75): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(84): warning C4244: аргумент: преобразование "cd_prec" в "part_prec", возможна потеря данных
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(98): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(174): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(179): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(220): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(261): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(309): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(314): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(355): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(396): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(477): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(482): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(523): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(564): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(612): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(617): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(658): warning C4018: <: несоответствие типов со знаком и без знака
-d:\renderingengine\renderingengine\renderingengine\src\sph\equationclasses.h(699): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(222): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(225): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(228): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(87): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(141): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(142): warning C4244: +=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(177): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(224): warning C4305: =: усечение из "double" в "fv_prec"
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(231): warning C4305: =: усечение из "double" в "fv_prec"
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(74): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(77): warning C4244: =: преобразование "cd_prec" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(130): warning C4244: +=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(270): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(297): warning C4244: *=: преобразование "cd_prec" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(300): warning C4244: *=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(322): warning C4018: <: несоответствие типов со знаком и без знака
 d:\renderingengine\renderingengine\renderingengine\src\application.cpp(572): warning C4244: аргумент: преобразование "double" в "T", возможна потеря данных
           with
           [
@@ -81,9 +60,130 @@ d:\renderingengine\renderingengine\renderingengine\src\application.cpp(573): war
           [
               T=float
           ]
+  ComputationalDomain.cpp
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(392): warning C4244: +=: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(407): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(422): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(437): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(453): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(468): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(483): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(197): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(200): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(203): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(222): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(225): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(228): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(87): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(141): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(142): warning C4244: +=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(177): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(224): warning C4305: =: усечение из "double" в "fv_prec"
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(231): warning C4305: =: усечение из "double" в "fv_prec"
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(74): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(77): warning C4244: =: преобразование "cd_prec" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(130): warning C4244: +=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(270): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(297): warning C4244: *=: преобразование "cd_prec" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(300): warning C4244: *=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(322): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(6): warning C4244: return: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(662): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(710): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(773): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(776): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(789): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(793): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(796): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(809): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(825): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(876): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(888): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(900): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(1300): warning C4244: инициализация: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(1301): warning C4244: инициализация: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(1304): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(1305): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\computationaldomain.cpp(1313): warning C4244: =: преобразование "int" в "float", возможна потеря данных
+  main.cpp
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(392): warning C4244: +=: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(407): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(422): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(437): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(453): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(468): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\mesh.h(483): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(197): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(200): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(203): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(222): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(225): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\boundarybase.h(228): warning C4244: =: преобразование "cd_prec" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(87): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(141): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(142): warning C4244: +=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(177): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(224): warning C4305: =: усечение из "double" в "fv_prec"
+d:\renderingengine\renderingengine\renderingengine\src\fvm\finitevolume.h(231): warning C4305: =: усечение из "double" в "fv_prec"
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(74): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(77): warning C4244: =: преобразование "cd_prec" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(130): warning C4244: +=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(270): warning C4018: <: несоответствие типов со знаком и без знака
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(297): warning C4244: *=: преобразование "cd_prec" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(300): warning C4244: *=: преобразование "double" в "fv_prec", возможна потеря данных
+d:\renderingengine\renderingengine\renderingengine\src\fvm\fvmesh.h(322): warning C4018: <: несоответствие типов со знаком и без знака
+Release\ComputationalDomain.obj : warning LNK4042: объект указан более одного раза; лишние не учитываются
   Создание кода
-  1 of 4209 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  2 of 3683 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+    9 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   RenderingEngine.vcxproj -> D:\RenderingEngine\RenderingEngine\Release\RenderingEngine.exe

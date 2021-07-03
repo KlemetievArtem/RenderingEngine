@@ -9,7 +9,8 @@
 #include "Something.h"
 
 
-#include "SPH/ComputationalDomain.h"
+//#include "SPH/ComputationalDomain.h"
+#include "FVM/ComputationalDomain.h"
 
 
 
@@ -30,7 +31,7 @@ class Application
 private:
 //
 	MODE application_mode = RUNNING;
-	bool CalculateParallelToRender = true;
+	bool CalculateParallelToRender = true; // true false
 
 
 //Variables

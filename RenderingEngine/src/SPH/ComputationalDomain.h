@@ -46,7 +46,7 @@ enum BOUNDARY_HANDLING {
 };
 
 
-struct ParticleRendererBuffer {
+struct RendererBuffer {
 	part_prec_3 position;
 	glm::vec3 color;
 	part_prec size;
@@ -166,7 +166,7 @@ private:
 	part_prec BH_r;
 	BoundaryMentor BM;
 	//std::unique_ptr<BoundaryMentor> BM;
-	std::vector<ParticleRendererBuffer> PRB;
+	std::vector<RendererBuffer> PRB;
 
 	uniformTreeGrid_2D* UG;
 

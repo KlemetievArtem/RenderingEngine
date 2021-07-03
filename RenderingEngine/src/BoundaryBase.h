@@ -11,12 +11,14 @@ class BoundaryBase;
 
 class BoundaryCondition {
 	cd_prec BC_val;
+	cd_prec BC_coef = 10E+30;
 public:
 	friend class BoundaryBase;
-	BoundaryCondition(cd_prec val): BC_val(val) { }
+	BoundaryCondition(cd_prec val, cd_prec coef = 10E+30): BC_val(val), BC_coef(coef) { }
 	BCPARAMETER BC_type;
 	BCPARAMETER getBCtype() { return this->BC_type; }
 	cd_prec getBCval() { return this->BC_val; }
+	cd_prec getBCcoef() { return this->BC_coef; }
 
 	//virtual void BoundariesUpdate() = 0;
 	virtual Mesh* ReturnMesh() = 0;
@@ -41,6 +43,20 @@ public:
 
 
 
+
+class ThirdOrderBC : public BoundaryCondition {
+public:
+	ThirdOrderBC(cd_prec val, cd_prec coef) :BoundaryCondition(val, coef) { }
+	void changeType(BCPARAMETER t) {
+		BC_type = t;
+	}
+	void addPosition(glm::vec3 pp) override {}
+	Mesh* ReturnMesh() override { return nullptr; }
+	glm::vec3 CalcVelocity() override { assert("FirstOrderBC::CalcVelocity()" && 0); return glm::vec3(0.0); }
+	cd_prec getSourceTimeStep() override { return 0.0; }
+};
+
+
 class FirstOrderBC: public BoundaryCondition {
 public:
 	FirstOrderBC(cd_prec val) :BoundaryCondition(val) { }
@@ -53,29 +69,63 @@ public:
 	cd_prec getSourceTimeStep() override { return 0.0; }
 };
 
-class Velcity_X_BC : public FirstOrderBC {
+
+
+
+class Velcity_X_BC : public ThirdOrderBC {
 	//cd_prec BC_val; //[ì/ñ]
 public:
-	Velcity_X_BC(cd_prec val) : FirstOrderBC(val) {
+	Velcity_X_BC(cd_prec val) : ThirdOrderBC(val, 10E+30) {
 		changeType(BCPARAMETER::VELOCITY_X);
 	}
 };
-class Velcity_Y_BC : public FirstOrderBC {
+class Velcity_Y_BC : public ThirdOrderBC {
 	//cd_prec BC_val; //[ì/ñ]
 public:
-	Velcity_Y_BC(cd_prec val) : FirstOrderBC(val) {
+	Velcity_Y_BC(cd_prec val) : ThirdOrderBC(val, 10E+30) {
 		changeType(BCPARAMETER::VELOCITY_Y);
 	}
 
 };
-class Velcity_Z_BC : public FirstOrderBC {
+class Velcity_Z_BC : public ThirdOrderBC {
 	//cd_prec BC_val; //[ì/ñ]
 public:
-	Velcity_Z_BC(cd_prec val) : FirstOrderBC(val) {
+	Velcity_Z_BC(cd_prec val) : ThirdOrderBC(val, 10E+30) {
 		changeType(BCPARAMETER::VELOCITY_Z);
 	}
 
 };
+
+
+class Velcity_X_Flow_BC : public ThirdOrderBC {
+	//cd_prec BC_val; //[ì/ñ]
+public:
+	Velcity_X_Flow_BC(cd_prec j) : ThirdOrderBC(10E+30 * j, 10E-30) {
+		changeType(BCPARAMETER::VELOCITY_X);
+	}
+};
+class Velcity_Y_Flow_BC : public ThirdOrderBC {
+	//cd_prec BC_val; //[ì/ñ]
+public:
+	Velcity_Y_Flow_BC(cd_prec j) : ThirdOrderBC(10E+30 * j, 10E-30) {
+		changeType(BCPARAMETER::VELOCITY_Y);
+	}
+
+};
+class Velcity_Z_Flow_BC : public ThirdOrderBC {
+	//cd_prec BC_val; //[ì/ñ]
+public:
+	Velcity_Z_Flow_BC(cd_prec j) : ThirdOrderBC(10E+30 * j, 10E-30) {
+		changeType(BCPARAMETER::VELOCITY_Z);
+	}
+
+};
+
+
+
+
+
+
 
 
 class PeriodicBC: public BoundaryCondition {
@@ -151,6 +201,31 @@ public:
 					break;
 				case(BCPARAMETER::VELOCITY_Z):
 					retVal.z = bc->getBCval();
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		return retVal;
+	}
+	glm::vec3 getVelocityCoefs() {
+		glm::vec3 retVal(0.0, 0.0, 0.0);
+		if (BCarray.size() < 3) {
+			if ((!this->isPeriodic()) and (!this->isSource())) assert("getVelocityCoefs::getVelocity() not enough assigned conditions for velocity" && 0);
+			if (this->isSource()) return BCarray[0]->CalcVelocity();
+		}
+		else {
+			for (auto bc : BCarray) {
+				switch (bc->getBCtype()) {
+				case(BCPARAMETER::VELOCITY_X):
+					retVal.x = bc->getBCcoef();
+					break;
+				case(BCPARAMETER::VELOCITY_Y):
+					retVal.y = bc->getBCcoef();
+					break;
+				case(BCPARAMETER::VELOCITY_Z):
+					retVal.z = bc->getBCcoef();
 					break;
 				default:
 					break;
