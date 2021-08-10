@@ -992,8 +992,8 @@ void Application::CursorUpdate() {
 //COMPUTATIONAL DOMAIN
 void Application::CompDomainInit() {
 	FVM_OPTIONS options;
-	options.nrOfFVinDir.x = 4;
-	options.nrOfFVinDir.y = 4;
+	options.nrOfFVinDir.x = 10;
+	options.nrOfFVinDir.y = 10;
 	this->ComputationalDomains.push_back(new FVM_CD(options, D2));
 
 	for (auto*&i : this->ComputationalDomains) {

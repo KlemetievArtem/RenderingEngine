@@ -23,6 +23,13 @@ enum TIME_INTEGRATION_SCHEME {
 	SEMI_IMPICIT,
 	NONE
 };
+enum CONV_DIFF_SCHEME {
+	CENTRAL_DIFFERENSING,
+	UPWIND,
+	HYBRID,
+	POWER_LAW,
+	EXPONENTIAL
+};
 
 
 struct RendererBuffer {
@@ -36,12 +43,12 @@ struct RendererBuffer {
 struct FVM_OPTIONS {
 
 	MESH_STRUCTURE mesh_s = STRUCTED;
-	int nrOfFV=0;
+	int nrOfFV[FVT_ALL];
 	fv_prec_3 nrOfFVinDir = {1,1,1};
 	//int densityChangeAlgorithm = 2;
 	//int velocityChangeAlgorithm_pressurePart = 2;
 	//int velocityChangeAlgorithm_viscosityPart = 2;
-
+	CONV_DIFF_SCHEME convectionDiffusionScheme = POWER_LAW;
 	TIME_INTEGRATION_SCHEME timeIntegrationScheme = EXPLICIT; // EXPLICIT IMPLICIT SEMI_IMPICIT SECOND_ORDER_SCEME NONE
 	// true  false
 	bool firstCycle = true;
@@ -108,11 +115,14 @@ private:
 	void timeStep(cd_prec dt);
 	void timeStep_thread(cd_prec dt, std::atomic<bool>& dataReadyForRender, std::atomic<bool>& dataIsRendering);
 	void timeUpdate(cd_prec dt);
+	void SIMPLE_ALGO(cd_prec dt);
+
+	inline fv_prec PeFunc(fv_prec Pe);
 
 
 
-	void Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec>* phi_param);
-	void Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec_3>* phi_param);
+	Matrix Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec>* phi_param);
+	void SolveWithFirstZero(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec>* phi_param);
 
 	void SaveMaxVelocity();
 

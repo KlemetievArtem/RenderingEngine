@@ -78,7 +78,9 @@ void FVM_CD::MeshInitilization(glm::vec3 positionMin, glm::vec3 positionMax) {
 		std::cout << "FVM_CD::MeshInitilization\n";
 	}
 	int count = 0;
-	fv_prec pressure = 10E05;
+	int meshCount = 0;
+	//fv_prec pressure = 10E05;
+	fv_prec pressure = 0;
 	switch (m_options.mesh_s) {
 	case(STRUCTED):
 	{
@@ -96,15 +98,17 @@ void FVM_CD::MeshInitilization(glm::vec3 positionMin, glm::vec3 positionMax) {
 				for (int fvc = 0;fvc < count;fvc++) {
 					if (FVM.FiniteVolumes[count] == FVM.FiniteVolumes[fvc]) {
 						if (FVM.FiniteVolumes[count]->m_l.ConnectedWith(FVM.FiniteVolumes[fvc]->m_l)) {
-							std::cout << "adding FiniteVolumeMesh\n";
+							//std::cout << "adding FiniteVolumeMesh\n";
 							FVM.FiniteVolumeMesh[count]->addNeighbour(FVM.FiniteVolumes[fvc]);
+							meshCount++;
 							FVM.FiniteVolumeMesh[fvc]->addNeighbour(FVM.FiniteVolumes[count]);
+							meshCount++;
 						}
 					}
 				}
 				count++;
 			}
-			m_options.nrOfFV = count;
+			m_options.nrOfFV[FVT_DEFAULT] = count;
 			break;
 		case(D2):
 			m_options.average_dim_steps.x = (positionMax.x - positionMin.x) / m_options.nrOfFVinDir.x;
@@ -126,15 +130,17 @@ void FVM_CD::MeshInitilization(glm::vec3 positionMin, glm::vec3 positionMax) {
 						//std::cout << "TUT";
 						//std::cout << FVM.FiniteVolumes[count]->m_s.getCentre().x << ", " << FVM.FiniteVolumes[count]->m_s.getCentre().y << "\n";
 						if (FVM.FiniteVolumes[count]->m_s.ConnectedWith(FVM.FiniteVolumes[fvc]->m_s)) {
-							std::cout << "adding FiniteVolumeMesh\n";
+							//std::cout << "adding FiniteVolumeMesh\n";
 							FVM.FiniteVolumeMesh[count]->addNeighbour(FVM.FiniteVolumes[fvc]);
+							meshCount++;
 							FVM.FiniteVolumeMesh[fvc]->addNeighbour(FVM.FiniteVolumes[count]);
+							meshCount++;
 						}
 					}
 					count++;
 				}
 			}
-			m_options.nrOfFV = count;
+			m_options.nrOfFV[FVT_DEFAULT] = count;
 			break;
 		case(D3):
 			m_options.average_dim_steps.x = (positionMax.x - positionMin.x) / m_options.nrOfFVinDir.x;
@@ -166,8 +172,11 @@ void FVM_CD::MeshInitilization(glm::vec3 positionMin, glm::vec3 positionMax) {
 						for (int fvc = 0;fvc < count;fvc++) {
 							if (FVM.FiniteVolumes[count] == FVM.FiniteVolumes[fvc]) {
 								if (FVM.FiniteVolumes[count]->m_v.ConnectedWith(FVM.FiniteVolumes[fvc]->m_v)) {
-									std::cout << "adding FiniteVolumeMesh\n";
+									//std::cout << "adding FiniteVolumeMesh\n";
 									FVM.FiniteVolumeMesh[count]->addNeighbour(FVM.FiniteVolumes[fvc]);
+									meshCount++;
+									FVM.FiniteVolumeMesh[fvc]->addNeighbour(FVM.FiniteVolumes[count]);
+									meshCount++;
 								}
 							}
 						}
@@ -175,7 +184,7 @@ void FVM_CD::MeshInitilization(glm::vec3 positionMin, glm::vec3 positionMax) {
 					}
 				}
 			}
-			m_options.nrOfFV = count;
+			m_options.nrOfFV[FVT_DEFAULT] = count;
 			break;
 		default:
 			break;
@@ -189,6 +198,8 @@ void FVM_CD::MeshInitilization(glm::vec3 positionMin, glm::vec3 positionMax) {
 	if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
 		std::cout << "number of Finite Volume = " << m_options.nrOfFV << "\n";
 	}
+	std::cout << count << " finite volumes added\n";
+	std::cout << meshCount << " neighbours in mesh\n";
 }
 /*
 void FVM_CD::BoundaryMeshInitialization(std::vector<BoundaryBase*>* activeBoundaries) {
@@ -502,9 +513,11 @@ void FVM_CD::BoundaryMeshInitialization(std::vector<BoundaryBase*>* activeBounda
 }
 */
 void FVM_CD::BoundaryMeshInitialization(std::vector<BoundaryBase*>* activeBoundaries) {
+	int meshCount = 0;
 	int BoundaryVoluemCountOld = FVM.FiniteVolumes.size();
 	int BoundaryVoluemCount = FVM.FiniteVolumes.size();
-	fv_prec pressure = 10E05;
+	//fv_prec pressure = 10E05;
+	fv_prec pressure = 0;
 	bool has_a_nighbour;
 	for (auto fvm1 : FVM.FiniteVolumeMesh) {
 		for (auto fvm1_l : fvm1->FVPtr()->m_s.m_lineArray) {
@@ -575,14 +588,15 @@ void FVM_CD::BoundaryMeshInitialization(std::vector<BoundaryBase*>* activeBounda
 						Line tempLine(fvm1_l);
 						FVM.FiniteVolumes.push_back(new FiniteVolume(BoundaryVoluemCount, FINITE_VOLUME_TYPE::FVT_BOUNDARY, tempLine, bc_velocity, pressure));
 						FVM.FiniteVolumes[BoundaryVoluemCount]->assignToBoundary(i);
-						std::cout << FVM.FiniteVolumes[BoundaryVoluemCount]->fv_boundary << "\n";
 						FVM.FiniteVolumeMesh.push_back(new FVMeshNodeEmpty(FVM.FiniteVolumes[BoundaryVoluemCount]));
 						for (int fvc = 0;fvc < BoundaryVoluemCount;fvc++) {
 							for (auto l : FVM.FiniteVolumes[fvc]->m_s.m_lineArray) {
 								if (FVM.FiniteVolumes[BoundaryVoluemCount]->m_l == l) {
-									std::cout << "adding FiniteVolumeMesh\n";
+									//std::cout << "adding FiniteVolumeMesh\n";
 									FVM.FiniteVolumeMesh[BoundaryVoluemCount]->addNeighbour(FVM.FiniteVolumes[fvc]);
+									meshCount++;
 									FVM.FiniteVolumeMesh[fvc]->addNeighbour(FVM.FiniteVolumes[BoundaryVoluemCount]);
+									meshCount++;
 								}
 							}
 						}
@@ -593,6 +607,10 @@ void FVM_CD::BoundaryMeshInitialization(std::vector<BoundaryBase*>* activeBounda
 			}
 		}
 	}
+
+	m_options.nrOfFV[FVT_BOUNDARY] = BoundaryVoluemCount - BoundaryVoluemCountOld;
+	std::cout << BoundaryVoluemCount - BoundaryVoluemCountOld << " finite volumes added\n";
+	std::cout << meshCount << " neighbours in mesh\n";
 }
 
 void FVM_CD::PRB_refresh() {
@@ -689,7 +707,7 @@ void FVM_CD::UpdateRendering(std::vector<Model*>* models, Texture* tex, Texture*
 			}
 			//std::cout << "after: " << models->size() << "\n";
 
-			assignNewModels(ModelId + m_options.nrOfFV);
+			assignNewModels(ModelId + FVM.FiniteVolumes.size());
 
 
 		}
@@ -761,74 +779,120 @@ void FVM_CD::timeStep_thread(cd_prec dt, std::atomic<bool>& dataReadyForRender, 
 
 
 
-void FVM_CD::Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec>* phi_param) {
+//void FVM_CD::Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec>* phi_param) {
+//
+//}
 
-}
-
-void FVM_CD::Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec_3>* phi_param) {
+void FVM_CD::SolveWithFirstZero(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec>* phi_param) {
 	(*Mesh)[0]->getPhiName();
-	
-	std::vector<cd_prec> Sources; Sources.resize((*Mesh).size(), 0.0);
-	Matrix mat((*Mesh).size(), (*Mesh).size());
-	for (int i = 0; i < (*Mesh).size(); i++) {
-		mat(i, i) = (*Mesh)[i]->getCoef((*Mesh)[i]->getVFPointers());
-		Sources[i] = (*Mesh)[i]->getSource();
-		for (int j = 0; j < (*Mesh).size(); j++) {
+	phi_param->resize(0);
+	bool print_mat = false;
+	bool print_source = false;
+	bool print_res = false;
+	int m_size = 0;
+	for (auto fvm : *Mesh) {
+		if (fvm->fv.fv->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			m_size++;
+		}
+	}
+
+	std::vector<cd_prec> Sources; Sources.resize(m_size, 0.0);
+	Matrix mat(m_size, m_size);
+	for (int i = 0; i < m_size; i++) {
+		for (int j = 0; j < m_size; j++) {
+			//for (auto ptr : (*Mesh)[i]->nb_fvs) {
+			//	if (j == ptr.innerid) {
+			//		mat(i, j) = -(*Mesh)[i]->getCoef(ptr.fv);
+			//	}
+			//}
 			for (auto ptr : (*Mesh)[i]->getNbPointers()) {
 				if (j == (*ptr).m_id) {
-					mat(i, j) = (*Mesh)[i]->getCoef(ptr);
+					mat(i, j) = -(*Mesh)[i]->getCoef(ptr);
 				}
 			}
 		}
+		mat(i, i) = (*Mesh)[i]->El().fv_coef;
+		Sources[i] = (*Mesh)[i]->getSource();
 	}
-	//std::cout << mat;
-	//std::cout << "\n";
+	
+	fv_prec def_press = 0.0;
+	for (int i = 0;i < m_size;i++) {
+		Sources[i] -= mat(i, 0) * def_press;
+		mat(i, 0) = 0.0;
+	}
 
-	std::vector<cd_prec> tempVec; tempVec.resize((*Mesh).size(), 0.0);
-	int lvl = 0;
-	for (int i = 1; i < (*Mesh).size(); i++) {
-		for (int j = 0; j < i; j++) {
-			if (mat(i, j) != 0.0) {
-				//if(mat(i - 1-j, j) != 0.0){
-					for (int k = 0;k < (*Mesh).size(); k++) {
-						tempVec[k] = mat(i - 1 - lvl+j, k)*mat(i, j) / mat(i - 1 - lvl+j, j);
-					}
-					for (int k = 0;k < (*Mesh).size(); k++) {
-						mat(i, k) -= tempVec[k];
-					}
-				//}
-			}
-			//std::cout << "\n";
-			//std::cout << mat;
-			//std::cout << "\n";
+
+	if (print_mat) {
+		std::cout << mat;
+		std::cout << "\n";
+	}
+	if (print_source) {
+		std::cout << "Source: ";
+		for (int i = 0; i < m_size; i++) {
+			std::cout << Sources[i] << " ";
 		}
-		lvl++;
+		std::cout << "\n";
 	}
-	std::cout << mat;
-	std::cout << "\n";
-	for (int i = 0; i < (*Mesh).size(); i++) {
-		std::cout << Sources[i] << " ";
-	}
-	std::cout << "\n";
-
-	std::vector<cd_prec> Results; Results.resize((*Mesh).size(), 0.0);
-	for (int i = (*Mesh).size() - 1; i > 0; i--) {
-		for (int j = (*Mesh).size() - 1; j > i; j--) {
-			if (i == (*Mesh).size() - 1) {
-				Results[i] = Sources[j] / mat(i, j);
-			}
-			else {
-				Results[i] = (Sources[j] - Results[i + 1] * mat(i + 1, j)) / mat(i, j);
+	Matrix tempMat(mat);
+	std::vector<cd_prec> tempVec1; tempVec1.resize(m_size, 0.0);
+	cd_prec tempSourceChange;
+	for (int j = 0; j < m_size; j++) { //  ÓÎÎÓÌ‡
+		for (int i = j + 1; i < m_size; i++) { // –ˇ‰
+			//fv_prec Koef = tempMat(i, j) / tempMat(j, j);
+			//std::cout << tempMat(i, j) << "/" << tempMat(j, j) << "\n";
+			if (tempMat(i, j) != 0) {
+				for (int k = 0; k < m_size; k++) { //  ÓÎÎÓÌ‡
+					//std::cout << tempMat(i, k) - tempMat(j, k)*tempMat(i, j) / tempMat(j, j) << " ";
+					tempVec1[k] = tempMat(i, k) - tempMat(j, k)*tempMat(i, j) / tempMat(j, j);
+				}
+				tempSourceChange = Sources[i] - Sources[j] * tempMat(i, j) / tempMat(j, j);
+				for (int k = 0; k < m_size; k++) { //  ÓÎÎÓÌ‡
+					tempMat(i, k) = tempVec1[k];
+				}
+				Sources[i] = tempSourceChange;
+				//std::cout << "\n";
+				//std::cout << tempMat;
+				//std::cout << "\n";
 			}
 		}
 	}
-	for (int i = 0; i < (*Mesh).size(); i++) {
-		std::cout << Results[i] << " ";
+	mat = tempMat;
+	if (print_mat) {
+		std::cout << mat;
+		std::cout << "\n";
 	}
-	std::cout << "\n\n";
+	if (print_source) {
+		std::cout << "Source: ";
+		for (int i = 0; i < m_size; i++) {
+			std::cout << Sources[i] << " ";
+		}
+		std::cout << "\n";
+	}
+
+	std::vector<cd_prec> Results; Results.resize(m_size, 0.0);
+	for (int i = m_size - 1; i > 0; i--) {
+		Results[i] = Sources[i];
+		if (i == m_size - 1) { }
+		for (int j = m_size - 1; j > i; j--) {
+			if (i == m_size - 1) { }
+			else { Results[i] -= Results[j] * mat(i, j); }
+		}
+		Results[i] /= mat(i, i);
+
+	}
+	for (int i = 0; i < m_size; i++) {
+		phi_param->push_back(Results[i]);
+	}
+	if (print_res) {
+		std::cout << "Reaults: ";
+		for (int i = 0; i < m_size; i++) {
+			std::cout << Results[i] << " ";
+		}
+		std::cout << "\n\n";
+	}
 
 
-	switch((*Mesh)[0]->getPhiName()){
+	switch ((*Mesh)[0]->getPhiName()) {
 	case(PHI_PARAMS::UX):
 		break;
 	case(PHI_PARAMS::UY):
@@ -839,81 +903,1654 @@ void FVM_CD::Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec_3>* phi_p
 
 }
 
+Matrix FVM_CD::Solve(std::vector<FVMeshNode*>* Mesh, std::vector<fv_prec>* phi_param) {
+	(*Mesh)[0]->getPhiName();
+	phi_param->resize(0);
+	bool print_mat = false;
+	bool print_source = false;
+	bool print_res = false;
+	int m_size = 0;
+	for (auto fvm : *Mesh) {
+		if (fvm->fv.fv->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			m_size++;
+		}
+	}
 
-void FVM_CD::SIMPLE_ALGO() {
+
+	std::vector<cd_prec> Sources; Sources.resize(m_size, 0.0);
+	Matrix mat(m_size, m_size);
+	for (int i = 0; i < m_size; i++) {
+		for (int j = 0; j < m_size; j++) {
+			//for (auto ptr : (*Mesh)[i]->nb_fvs) {
+			//	if (j == ptr.innerid) {
+			//		mat(i, j) = -(*Mesh)[i]->getCoef(ptr.fv);
+			//	}
+			//}
+			for (auto ptr : (*Mesh)[i]->getNbPointers()) {
+				if (j == (*ptr).m_id) {
+					mat(i, j) = -(*Mesh)[i]->getCoef(ptr);
+				}
+			}
+		}
+		mat(i, i) = (*Mesh)[i]->El().fv_coef;
+		Sources[i] = (*Mesh)[i]->getSource();
+	}
+	if(print_mat){
+		std::cout << mat;
+		std::cout << "\n";
+	}
+	if (print_source) {
+		std::cout << "Source: ";
+		for (int i = 0; i < m_size; i++) {
+			std::cout << Sources[i] << " ";
+		}
+		std::cout << "\n";
+	}
+	Matrix RetValmat(mat);
+
+
+	//std::vector<cd_prec> tempVec; tempVec.resize((*Mesh).size(), 0.0);
+	//int lvl = 1;
+	//for (int j = 0; j < lvl; j++) {
+	//	for (int i = lvl; i < (*Mesh).size(); i++) {
+	//		if (mat(i, j) != 0.0) {
+	//			//if(mat(i - lvl+j, j) != 0.0){
+	//				for (int k = 0;k < (*Mesh).size(); k++) {
+	//					tempVec[k] = mat(j, k)*mat(i, j) / mat(j, j);
+	//				}
+	//				for (int k = 0;k < (*Mesh).size(); k++) {
+	//					mat(i, k) -= tempVec[k];
+	//				}
+	//			//}
+	//  		//std::cout << "\n";
+	//  		//std::cout << mat;
+	//  		//std::cout << "\n";
+	//		}
+	//	}
+	//	lvl++;
+	//}
+
+
+
+	Matrix tempMat(mat);
+	std::vector<cd_prec> tempVec1; tempVec1.resize(m_size, 0.0);
+	cd_prec tempSourceChange;
+	for (int j = 0; j < m_size; j++) { //  ÓÎÎÓÌ‡
+		for (int i = j+1; i < m_size; i++) { // –ˇ‰
+			//fv_prec Koef = tempMat(i, j) / tempMat(j, j);
+			//std::cout << tempMat(i, j) << "/" << tempMat(j, j) << "\n";
+			if(tempMat(i, j) != 0){
+				for (int k = 0; k < m_size; k++) { //  ÓÎÎÓÌ‡
+					//std::cout << tempMat(i, k) - tempMat(j, k)*tempMat(i, j) / tempMat(j, j) << " ";
+					tempVec1[k] = tempMat(i, k) - tempMat(j, k)*tempMat(i, j) / tempMat(j, j);
+				}
+				tempSourceChange = Sources[i] - Sources[j] * tempMat(i, j) / tempMat(j, j);
+				for (int k = 0; k < m_size; k++) { //  ÓÎÎÓÌ‡
+					tempMat(i, k) = tempVec1[k];
+				}
+				Sources[i] = tempSourceChange;
+				//std::cout << "\n";
+				//std::cout << tempMat;
+				//std::cout << "\n";
+			}
+		}
+	}
+	mat = tempMat;
+
+	//std::cout << "\n";
+	//std::cout << tempMat;
+	//std::cout << "\n";
+
+	fv_prec Koef;
+
+	//std::vector<cd_prec> tempVec; tempVec.resize((*Mesh).size(), 0.0);
+	//int lvl = 0;
+	//for (int i = 1; i < (*Mesh).size(); i++) {
+	//	for (int j = 0; j < i; j++) {
+	//		if (mat(i, j) != 0.0) {
+	//			if(mat(i - 1 - lvl + j, j) != 0.0){
+	//				Koef = mat(i, j) / mat(i - 1 - lvl + j, j);
+	//				for (int k = 0;k < (*Mesh).size(); k++) {
+	//					tempVec[k] = mat(i - 1 - lvl+j, k)*mat(i, j) / mat(i - 1 - lvl + j, j);
+	//					Sources[i] -= Sources[i - 1 - lvl + j] * mat(i, j) / mat(i - 1 - lvl + j, j);
+	//				}
+	//				for (int k = 0;k < (*Mesh).size(); k++) {
+	//					mat(i, k) -= tempVec[k];
+	//				}
+	//			}
+	//		}
+	//		//std::cout << "\n";
+			//std::cout << mat;
+			//std::cout << "\n";
+			//for (int i = 0; i < (*Mesh).size(); i++) {
+			//	std::cout << Sources[i] << " ";
+			//}
+			//std::cout << "\n";
+	//	}
+	//	lvl++;
+	//}
+
+	if (print_mat) {
+		std::cout << mat;
+		std::cout << "\n";
+	}
+	if (print_source) {
+		std::cout << "Source: ";
+		for (int i = 0; i < m_size; i++) {
+			std::cout << Sources[i] << " ";
+		}
+		std::cout << "\n";
+	}
+
+	std::vector<cd_prec> Results; Results.resize(m_size, 0.0);
+	for (int i = m_size - 1; i >= 0; i--) {
+		Results[i] = Sources[i];
+		if (i == m_size - 1) { }
+		for (int j = m_size - 1; j > i; j--) {
+			if (i == m_size - 1) { }
+			else { Results[i] -= Results[j] * mat(i, j); }
+		}
+		Results[i] /= mat(i, i);
+	}
+	for (int i = 0; i < m_size; i++) {
+		phi_param->push_back(Results[i]);
+	}
+	if (print_res) {
+		std::cout << "Results: ";
+		for (int i = 0; i < m_size; i++) {
+			std::cout << Results[i] << " ";
+		}
+		std::cout << "\n\n";
+	}
+
+
+	return RetValmat;
+
+}
+
+
+inline fv_prec vec_mod(fv_prec_3 vec) {
+	return (sqrt(pow(vec.x, 2) + pow(vec.y, 2) + pow(vec.z, 2)));
+}
+
+inline fv_prec FVM_CD::PeFunc(fv_prec Pe) {
+	switch (m_options.convectionDiffusionScheme) {
+	case(CONV_DIFF_SCHEME::CENTRAL_DIFFERENSING): return 1.0 - 0.5*abs(Pe);
+	case(CONV_DIFF_SCHEME::UPWIND): return 1.0;
+	case(CONV_DIFF_SCHEME::HYBRID): return glm::max(glm::max(-1.0*Pe, (1-0.5*Pe)), 0.0);
+	case(CONV_DIFF_SCHEME::POWER_LAW): return glm::max(0.0, pow(1.0 - 0.1*abs(Pe),5));
+	case(CONV_DIFF_SCHEME::EXPONENTIAL): return Pe/ (exp(Pe) - 1);
+	default: assert("FVM_CD::PeFunc" && 0);
+	}
+}
+
+
+void FVM_CD::SIMPLE_ALGO(cd_prec dt) {
+	std::cout << "FVM_CD::SIMPLE_ALGO(" << dt << ")\n";
+	int AlgoIteration = 1;
+
+	fv_prec AlphaP = 0.8;
+	fv_prec AlphaU = 0.5;
+	fv_prec AlphaV = 0.5;
+	fv_prec AlphaW = 0.5;
+	fv_prec residualScale = 1.0;
+	fv_prec Eps = 0.1;
+	fv_prec maxIteration = 1;
+
+
+	std::vector<FiniteVolume*> UVolumes;
+	std::vector<FVMeshNode*> FVMesh_U;
+	std::cout << "Creating U mesh \n";
+	//std::vector<FiniteVolumeMesh*> UVolumeMesh;
+
+	int meshCount = 0;
+	int UVc = 0;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		if ((fvm->getPtrToSide(NB_E)->fv_boundary == nullptr) and(fvm->FVPtr()->fv_boundary == nullptr)) {
+			fv_prec_3 p1(fvm->FVPtr()->m_s.getCentre() + glm::vec3(0.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+			fv_prec_3 p2(fvm->getPtrToSide(NB_E)->m_s.getCentre() + glm::vec3(0.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+			fv_prec_3 p3(fvm->FVPtr()->m_s.getCentre() + glm::vec3(0.0, m_options.average_dim_steps.y / 2.0, 0.0));
+			fv_prec_3 p4(fvm->getPtrToSide(NB_E)->m_s.getCentre() + glm::vec3(0.0, m_options.average_dim_steps.y / 2.0, 0.0));
+			if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr) {
+				p1 =(fvm->FVPtr()->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+				p3 =(fvm->FVPtr()->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+			}
+			if (FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_E)->fv_boundary != nullptr) {
+				p2 =(fvm->getPtrToSide(NB_E)->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+				p4 =(fvm->getPtrToSide(NB_E)->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+			}
+			//std::cout << UVc << ": {" << p1.x << "," << p1.y << "}, {" << p2.x << "," << p2.y << "}, {" << p3.x << "," << p3.y << "}, {" << p4.x << "," << p4.y << "}\n";
+			Surface tempSurface(Line(p1, p2), Line(p2, p4), Line(p4, p3)); tempSurface.addLine(Line(p3, p1));
+			tempSurface.calcCentre();
+			UVolumes.push_back(new FiniteVolume(UVc, FINITE_VOLUME_TYPE::FVT_DEFAULT, tempSurface, glm::vec3(0.0f, 0.f, 0.f), 0.0));
+			FVMesh_U.push_back(new FVMeshNode(UVolumes[UVc], FPARAM::FU));
+
+			for (int fvc = 0;fvc < UVc;fvc++) {
+				//if (UVc == 4) {
+				//	std::cout << "{" << UVolumes[0]->m_s.m_lineArray[2].m_p1.x << ", " << UVolumes[0]->m_s.m_lineArray[2].m_p1.y << "},{" << UVolumes[0]->m_s.m_lineArray[2].m_p2.x << ", " << UVolumes[0]->m_s.m_lineArray[2].m_p2.y << "}-{" << UVolumes[UVc]->m_s.m_lineArray[0].m_p1.x << ", " << UVolumes[UVc]->m_s.m_lineArray[0].m_p1.y << "},{" << UVolumes[UVc]->m_s.m_lineArray[0].m_p2.x << ", " << UVolumes[UVc]->m_s.m_lineArray[0].m_p2.y << "}" << (UVolumes[0]->m_s.m_lineArray[2] == UVolumes[UVc]->m_s.m_lineArray[0]) << "\n";
+				//	std::cout << "" << UVolumes[0]->m_s.m_lineArray[2].m_p1.x << "-" << UVolumes[UVc]->m_s.m_lineArray[0].m_p2.x<< "= "  << UVolumes[0]->m_s.m_lineArray[2].m_p1.x - UVolumes[UVc]->m_s.m_lineArray[0].m_p2.x << " " << (UVolumes[0]->m_s.m_lineArray[2].m_p1.x == UVolumes[UVc]->m_s.m_lineArray[0].m_p2.x) << "\n";
+				//	std::cout << "" << UVolumes[0]->m_s.m_lineArray[2].m_p1.y << "-" << UVolumes[UVc]->m_s.m_lineArray[0].m_p2.y << "= " << UVolumes[0]->m_s.m_lineArray[2].m_p1.y - UVolumes[UVc]->m_s.m_lineArray[0].m_p2.y << " " << (UVolumes[0]->m_s.m_lineArray[2].m_p1.y == UVolumes[UVc]->m_s.m_lineArray[0].m_p2.y) << "\n";
+				//	std::cout << "" << UVolumes[0]->m_s.m_lineArray[2].m_p2.x << "-" << UVolumes[UVc]->m_s.m_lineArray[0].m_p1.x << "= " << UVolumes[0]->m_s.m_lineArray[2].m_p2.x - UVolumes[UVc]->m_s.m_lineArray[0].m_p1.x << " " << (UVolumes[0]->m_s.m_lineArray[2].m_p2.x == UVolumes[UVc]->m_s.m_lineArray[0].m_p1.x) << "\n";
+				//	std::cout << "" << UVolumes[0]->m_s.m_lineArray[2].m_p2.y << "-" << UVolumes[UVc]->m_s.m_lineArray[0].m_p1.y << "= " << UVolumes[0]->m_s.m_lineArray[2].m_p2.y - UVolumes[UVc]->m_s.m_lineArray[0].m_p1.y << " "  << (UVolumes[0]->m_s.m_lineArray[2].m_p2.y == UVolumes[UVc]->m_s.m_lineArray[0].m_p1.y) << "\n";
+				//
+				//}
+				if (UVolumes[UVc]->m_s.ConnectedWith(UVolumes[fvc]->m_s)) {
+					//std::cout << "(" << UVolumes[UVc]->m_Centre.x << "," << UVolumes[UVc]->m_Centre.y << " - " << UVolumes[fvc]->m_Centre.x << "," << UVolumes[fvc]->m_Centre.y << ") ";
+					//std::cout << "adding FiniteVolumeMesh \n";
+					FVMesh_U[UVc]->addNeighbour(UVolumes[fvc]);
+					meshCount++;
+					FVMesh_U[fvc]->addNeighbour(UVolumes[UVc]);
+					meshCount++;
+				}
+			}
+			//std::cout << FVMesh_U[UVc]->nb_fvs.size() << "\n";
+			UVc++;
+		}
+	}
+	int Usize = UVc;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		fv_prec_3 p1;
+		fv_prec_3 p2;
+		Line l;
+		fv_prec_3 vel;
+		fv_prec pressure;
+		if ((fvm->FVPtr()->fv_boundary == nullptr)) {
+			if ((fvm->getPtrToSide(NB_E)->fv_boundary == nullptr)) {
+				if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr) {
+					l = fvm->getPtrToSide(NB_W)->m_l;
+					vel = fvm->getPtrToSide(NB_W)->m_velocity.val;
+					pressure = fvm->getPtrToSide(NB_W)->m_pressure.val;
+					//std::cout << UVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_W ";
+					UVolumes.push_back(new FiniteVolume(UVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+					UVolumes[UVc]->assignToBoundary(fvm->getPtrToSide(NB_W)->fv_boundary);
+					FVMesh_U.push_back(new FVMeshNode(UVolumes[UVc], FPARAM::FU));
+					for (int fvc = 0;fvc < UVc;fvc++) {
+						for (auto l : UVolumes[fvc]->m_s.m_lineArray) {
+							if (UVolumes[UVc]->m_l == l) {
+								//std::cout << "adding FiniteVolumeMesh\n";
+								FVMesh_U[UVc]->addNeighbour(UVolumes[fvc]);
+								meshCount++;
+								FVMesh_U[fvc]->addNeighbour(UVolumes[UVc]);
+								meshCount++;
+							}
+						}
+					}
+					//std::cout << UVc << ": " << UVolumes[UVc]->fv_boundary << " NB_W ";
+					UVc++;
+
+				}
+				if (fvm->getPtrToSide(NB_N)->fv_boundary != nullptr) {					
+					p1 = fvm->getPtrToSide(NB_N)->m_Centre;
+					p2 = FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_N)->m_Centre;
+					
+					vel = 0.5f*(fvm->getPtrToSide(NB_N)->m_velocity.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_N)->m_velocity.val);
+					pressure = 0.5f*(fvm->getPtrToSide(NB_N)->m_pressure.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_N)->m_pressure.val);
+					
+					if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr)
+						p1 = (fvm->FVPtr()->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+					if (FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_E)->fv_boundary != nullptr) 
+						p2 = (fvm->getPtrToSide(NB_E)->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+					l = Line(p1, p2);
+					//std::cout << UVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_N ";
+					UVolumes.push_back(new FiniteVolume(UVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+					UVolumes[UVc]->assignToBoundary(fvm->getPtrToSide(NB_N)->fv_boundary);
+					FVMesh_U.push_back(new FVMeshNode(UVolumes[UVc], FPARAM::FU));
+					for (int fvc = 0;fvc < UVc;fvc++) {
+						for (auto l : UVolumes[fvc]->m_s.m_lineArray) {
+							if (UVolumes[UVc]->m_l == l) {
+								//std::cout << "adding FiniteVolumeMesh\n";
+								FVMesh_U[UVc]->addNeighbour(UVolumes[fvc]);
+								meshCount++;
+								FVMesh_U[fvc]->addNeighbour(UVolumes[UVc]);
+								meshCount++;
+							}
+						}
+					}
+					//std::cout << UVc << ": " << UVolumes[UVc]->fv_boundary << " NB_N ";
+					UVc++;
+
+				}
+				if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr) {
+					p1 = (fvm->FVPtr()->m_s.getCentre() + glm::vec3(0.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+					p2 = (fvm->getPtrToSide(NB_E)->m_s.getCentre() + glm::vec3(0.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+
+					vel = 0.5f*(fvm->getPtrToSide(NB_S)->m_velocity.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_S)->m_velocity.val);
+					pressure = 0.5f*(fvm->getPtrToSide(NB_S)->m_pressure.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_S)->m_pressure.val);
+
+					if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr)
+						p1 = (fvm->FVPtr()->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+					if (FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_E)->m_id]->getPtrToSide(NB_E)->fv_boundary != nullptr)
+						p2 = (fvm->getPtrToSide(NB_E)->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+					l = Line(p1, p2);
+
+					//std::cout << UVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_S ";
+					UVolumes.push_back(new FiniteVolume(UVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+					UVolumes[UVc]->assignToBoundary(fvm->getPtrToSide(NB_S)->fv_boundary);
+					FVMesh_U.push_back(new FVMeshNode(UVolumes[UVc], FPARAM::FU));
+					for (int fvc = 0;fvc < UVc;fvc++) {
+						for (auto l : UVolumes[fvc]->m_s.m_lineArray) {
+							if (UVolumes[UVc]->m_l == l) {
+								//std::cout << "adding FiniteVolumeMesh\n";
+								FVMesh_U[UVc]->addNeighbour(UVolumes[fvc]);
+								meshCount++;
+								FVMesh_U[fvc]->addNeighbour(UVolumes[UVc]);
+								meshCount++;
+							}
+						}
+					}
+					//std::cout << UVc << ": " << UVolumes[UVc]->fv_boundary << " NB_S ";
+					UVc++;
+
+
+				}
+			}
+			else {
+				l = fvm->getPtrToSide(NB_E)->m_l;
+				vel = fvm->getPtrToSide(NB_E)->m_velocity.val;
+				pressure = fvm->getPtrToSide(NB_E)->m_pressure.val;
+				//std::cout << UVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_E ";
+				UVolumes.push_back(new FiniteVolume(UVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+				UVolumes[UVc]->assignToBoundary(fvm->getPtrToSide(NB_E)->fv_boundary);
+				FVMesh_U.push_back(new FVMeshNode(UVolumes[UVc], FPARAM::FU));
+				for (int fvc = 0;fvc < UVc;fvc++) {
+					 for (auto l : UVolumes[fvc]->m_s.m_lineArray) {
+						 if (UVolumes[UVc]->m_l == l) {
+							 //std::cout << "adding FiniteVolumeMesh\n";
+							 FVMesh_U[UVc]->addNeighbour(UVolumes[fvc]);
+							 meshCount++;
+							 FVMesh_U[fvc]->addNeighbour(UVolumes[UVc]);
+							 meshCount++;
+						 }
+					 }
+				}
+				//std::cout << UVc << ": " << UVolumes[UVc]->fv_boundary << " NB_E ";
+				UVc++;
+			}
+			//std::cout << "\n";
+		}
+	}
+	std::cout << UVc << " finite volumes added\n";
+	std::cout << meshCount << " neighbours in mesh\n";
+	//int UVbc = UVc;
+	//for (auto fvm : FVMesh_U) {
+	//	fv_prec_3 p1;
+	//	fv_prec_3 p2;
+	//	if (fvm->getPtrToSide(NB_E) == nullptr) {
+	//		p1 = fv_prec_3(fvm->fv.fv->m_Centre.x + m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y - m_options.average_dim_steps.y / 2.0, 0.0);
+	//		p2 = fv_prec_3(fvm->fv.fv->m_Centre.x + m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y + m_options.average_dim_steps.y / 2.0, 0.0);
+	//	}
+	//	if (fvm->getPtrToSide(NB_W) == nullptr) {
+	//		p1 = fv_prec_3(fvm->fv.fv->m_Centre.x - m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y - m_options.average_dim_steps.y / 2.0, 0.0);
+	//		p2 = fv_prec_3(fvm->fv.fv->m_Centre.x - m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y + m_options.average_dim_steps.y / 2.0, 0.0);
+	//	}
+	//	if (fvm->getPtrToSide(NB_N) == nullptr) {
+	//		p1 = fv_prec_3(fvm->fv.fv->m_Centre.x - m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y + m_options.average_dim_steps.y / 2.0, 0.0);
+	//		p2 = fv_prec_3(fvm->fv.fv->m_Centre.x + m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y + m_options.average_dim_steps.y / 2.0, 0.0);
+	//	}
+	//	if (fvm->getPtrToSide(NB_S) == nullptr) {
+	//		p1 = fv_prec_3(fvm->fv.fv->m_Centre.x - m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y - m_options.average_dim_steps.y / 2.0, 0.0);
+	//		p2 = fv_prec_3(fvm->fv.fv->m_Centre.x + m_options.average_dim_steps.x / 2.0, fvm->fv.fv->m_Centre.y - m_options.average_dim_steps.y / 2.0, 0.0);
+	//	}
+	//	Line tempLine(p1,p2);
+	//	UVolumes.push_back(new FiniteVolume(UVbc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, tempLine, {0.0,0.0,0.0}, 0.0));
+	//	FVMesh_U.push_back(new FVMeshNode(UVolumes[UVbc]));
+	//	for (int fvc = 0;fvc < UVbc;fvc++) {
+	//		for (auto l : FVM.FiniteVolumes[fvc]->m_s.m_lineArray) {
+	//			if (UVolumes[UVbc]->m_l == l) {
+	//				std::cout << "adding FiniteVolumeMesh\n";
+	//				FVMesh_U[UVbc]->addNeighbour(UVolumes[fvc]);
+	//				FVMesh_U[fvc]->addNeighbour(UVolumes[UVbc]);
+	//			}
+	//		}
+	//	}
+	//	UVbc++;
+	//}
+	fv_prec Uresidual = 0.0;
+	fv_prec residualScaleU = 0.0;
+	fv_prec MaxUresidual = 0.0;
+
+	std::vector<FiniteVolume*> VVolumes;
+	std::vector<FVMeshNode*> FVMesh_V;
+	std::cout << "Creating V mesh \n";
+	//std::vector<FiniteVolumeMesh*> VVolumeMesh;
+	meshCount = 0;
+	int VVc = 0;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		if ((fvm->getPtrToSide(NB_N)->fv_boundary == nullptr) and (fvm->FVPtr()->fv_boundary == nullptr)) {
+			fv_prec_3 p1(fvm->FVPtr()->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, 0.0, 0.0));
+			fv_prec_3 p2(fvm->FVPtr()->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, 0.0, 0.0));
+			fv_prec_3 p3(fvm->getPtrToSide(NB_N)->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, 0.0, 0.0));
+			fv_prec_3 p4(fvm->getPtrToSide(NB_N)->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, 0.0, 0.0));
+			if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr) {
+				p1 = (fvm->FVPtr()->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+				p2 = (fvm->FVPtr()->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+			}
+			if (FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_N)->fv_boundary != nullptr) {
+				p3 = (fvm->getPtrToSide(NB_N)->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+				p4 = (fvm->getPtrToSide(NB_N)->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+			}
+			//std::cout << VVc << ": {" << p1.x << "," << p1.y << "}, {" << p2.x << "," << p2.y << "}, {" << p3.x << "," << p3.y << "}, {" << p4.x << "," << p4.y << "}\n";
+			Surface tempSurface(Line(p1, p2), Line(p2, p4), Line(p4, p3)); tempSurface.addLine(Line(p3, p1));
+			tempSurface.calcCentre();
+			VVolumes.push_back(new FiniteVolume(VVc, FINITE_VOLUME_TYPE::FVT_DEFAULT, tempSurface, glm::vec3(0.0f, 0.f, 0.f), 0.0));
+			FVMesh_V.push_back(new FVMeshNode(VVolumes[VVc], FPARAM::FV));
+
+			for (int fvc = 0;fvc < VVc;fvc++) {
+				if (VVolumes[VVc]->m_s.ConnectedWith(VVolumes[fvc]->m_s)) {
+					//std::cout << "adding FiniteVolumeMesh\n";
+					FVMesh_V[VVc]->addNeighbour(VVolumes[fvc]);
+					meshCount++;
+					FVMesh_V[fvc]->addNeighbour(VVolumes[VVc]);
+					meshCount++;
+				}
+			}
+			VVc++;
+		}
+	}
+	int Vsize = VVc;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		fv_prec_3 p1;
+		fv_prec_3 p2;
+		Line l;
+		fv_prec_3 vel;
+		fv_prec pressure;
+		if ((fvm->FVPtr()->fv_boundary == nullptr)) {
+			//std::wcout << fvm->FVPtr()->m_id << " ";
+			if ((fvm->getPtrToSide(NB_N)->fv_boundary == nullptr)) {
+				if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr) {
+					l = fvm->getPtrToSide(NB_S)->m_l;
+					vel = fvm->getPtrToSide(NB_S)->m_velocity.val;
+					pressure = fvm->getPtrToSide(NB_S)->m_pressure.val;
+					//std::cout << VVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_S ";
+					VVolumes.push_back(new FiniteVolume(VVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+					VVolumes[VVc]->assignToBoundary(fvm->getPtrToSide(NB_S)->fv_boundary);
+					FVMesh_V.push_back(new FVMeshNode(VVolumes[VVc], FPARAM::FU));
+					for (int fvc = 0;fvc < VVc;fvc++) {
+						for (auto l : VVolumes[fvc]->m_s.m_lineArray) {
+							if (VVolumes[VVc]->m_l == l) {
+								//std::cout << "adding FiniteVolumeMesh\n";
+								FVMesh_V[VVc]->addNeighbour(VVolumes[fvc]);
+								meshCount++;
+								FVMesh_V[fvc]->addNeighbour(VVolumes[VVc]);
+								meshCount++;
+							}
+						}
+					}
+					VVc++;
+
+				}
+				if (fvm->getPtrToSide(NB_E)->fv_boundary != nullptr) {
+					p1 = fvm->getPtrToSide(NB_E)->m_Centre;
+					p2 = FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_E)->m_Centre;
+
+					vel = 0.5f*(fvm->getPtrToSide(NB_E)->m_velocity.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_E)->m_velocity.val);
+					pressure = 0.5f*(fvm->getPtrToSide(NB_E)->m_pressure.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_E)->m_pressure.val);
+
+					if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr)
+						p1 = (fvm->FVPtr()->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+					if (FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_N)->fv_boundary != nullptr)
+						p2 = (fvm->getPtrToSide(NB_N)->m_s.getCentre() + glm::vec3(m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+					l = Line(p1, p2);
+					//std::cout << VVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_E ";
+					VVolumes.push_back(new FiniteVolume(VVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+					VVolumes[VVc]->assignToBoundary(fvm->getPtrToSide(NB_E)->fv_boundary);
+					FVMesh_V.push_back(new FVMeshNode(VVolumes[VVc], FPARAM::FU));
+					for (int fvc = 0;fvc < VVc;fvc++) {
+						for (auto l : VVolumes[fvc]->m_s.m_lineArray) {
+							if (VVolumes[VVc]->m_l == l) {
+								//std::cout << "adding FiniteVolumeMesh\n";
+								FVMesh_V[VVc]->addNeighbour(VVolumes[fvc]);
+								meshCount++;
+								FVMesh_V[fvc]->addNeighbour(VVolumes[VVc]);
+								meshCount++;
+							}
+						}
+					}
+					VVc++;
+
+				}
+				if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr) {
+					p1 = fvm->getPtrToSide(NB_W)->m_Centre;
+					p2 = FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_W)->m_Centre;
+
+					vel = 0.5f*(fvm->getPtrToSide(NB_W)->m_velocity.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_W)->m_velocity.val);
+					pressure = 0.5f*(fvm->getPtrToSide(NB_W)->m_pressure.val + FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_W)->m_pressure.val);
+
+					if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr)
+						p1 = (fvm->FVPtr()->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, -m_options.average_dim_steps.y / 2.0, 0.0));
+					if (FVM.FiniteVolumeMesh[fvm->getPtrToSide(NB_N)->m_id]->getPtrToSide(NB_N)->fv_boundary != nullptr)
+						p2 = (fvm->getPtrToSide(NB_N)->m_s.getCentre() + glm::vec3(-m_options.average_dim_steps.x / 2.0, m_options.average_dim_steps.y / 2.0, 0.0));
+					l = Line(p1, p2);
+					//std::cout << VVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_W ";
+					VVolumes.push_back(new FiniteVolume(VVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+					VVolumes[VVc]->assignToBoundary(fvm->getPtrToSide(NB_W)->fv_boundary);
+					FVMesh_V.push_back(new FVMeshNode(VVolumes[VVc], FPARAM::FU));
+					for (int fvc = 0;fvc < VVc;fvc++) {
+						for (auto l : VVolumes[fvc]->m_s.m_lineArray) {
+							if (VVolumes[VVc]->m_l == l) {
+								//std::cout << "adding FiniteVolumeMesh\n";
+								FVMesh_V[VVc]->addNeighbour(VVolumes[fvc]);
+								meshCount++;
+								FVMesh_V[fvc]->addNeighbour(VVolumes[VVc]);
+								meshCount++;
+							}
+						}
+					}
+					VVc++;
+
+
+				}
+			}
+			else {
+				l = fvm->getPtrToSide(NB_N)->m_l;
+				vel = fvm->getPtrToSide(NB_N)->m_velocity.val;
+				pressure = fvm->getPtrToSide(NB_N)->m_pressure.val;
+				//std::cout << VVc << ": {" << l.m_p1.x << "," << l.m_p1.y << "}, {" << l.m_p2.x << "," << l.m_p2.y << "}" << " NB_N ";
+				VVolumes.push_back(new FiniteVolume(VVc, FINITE_VOLUME_TYPE::FVT_BOUNDARY, l, vel, pressure));
+				VVolumes[VVc]->assignToBoundary(fvm->getPtrToSide(NB_N)->fv_boundary);
+				FVMesh_V.push_back(new FVMeshNode(VVolumes[VVc], FPARAM::FU));
+				for (int fvc = 0;fvc < VVc;fvc++) {
+					for (auto l : VVolumes[fvc]->m_s.m_lineArray) {
+						if (VVolumes[VVc]->m_l == l) {
+							//std::cout << "adding FiniteVolumeMesh\n";
+							FVMesh_V[VVc]->addNeighbour(VVolumes[fvc]);
+							meshCount++;
+							FVMesh_V[fvc]->addNeighbour(VVolumes[VVc]);
+							meshCount++;
+						}
+					}
+				}
+				VVc++;
+			}
+			//std::cout << "\n";
+		}
+	}
+	std::cout << VVc << " finite volumes added\n";
+	std::cout << meshCount << " neighbours in mesh\n";
+	fv_prec Vresidual = 0.0;
+	fv_prec residualScaleV = 0.0;
+	fv_prec MaxVresidual = 0.0;
+
+	std::vector<int> last_x_fvs;
+	std::vector<int> last_y_fvs;
+	fv_prec max_x = 0.0; fv_prec max_y = 0.0; fv_prec max_z = 0.0;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (max_x < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x) max_x = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x;
+		if (max_y < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y) max_y = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y;
+		if (max_z < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.z) max_z = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.z;
+	}
+	max_x = 1.00 - m_options.average_dim_steps.x;
+	max_y = 1.00 - m_options.average_dim_steps.y;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x >= max_x) { last_x_fvs.push_back(i); }
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y >= max_y) { last_y_fvs.push_back(i); }
+		}
+	}
+
+	fv_prec sigma = 1.0;
+
+	Ch_<fv_prec> sum;
+	sum.dval = 10.0;
+	sum.val = 0.0;
+
+	fv_prec Presidual = 0.0;
+	fv_prec MaxPresidual = 0.0;
+
+
 	std::vector<fv_prec> PApr;
 	PApr.resize(FVM.FiniteVolumes.size(), 0.0);
-	std::vector<fv_prec_3> VelApr;
-	VelApr.resize(FVM.FiniteVolumes.size(), { 0.0,0.0,0.0 });
 	std::vector<fv_prec> Pcor;
 	Pcor.resize(FVM.FiniteVolumes.size(), 0.0);
 
-	std::vector<Ch_<fv_prec>> Eps;
 
-	std::vector<FVMeshNode*> FVMesh_VxA;
-	std::vector<FVMeshNode*> FVMesh_VyA;
+	Ch_<std::vector<fv_prec>> UApr;
+	UApr.val.resize(Usize, 0.0);
+	UApr.dval.resize(Usize, 0.0);
+	std::vector<fv_prec> UCor_ed;
+	UCor_ed.resize(Usize, 0.0);
+	std::vector<fv_prec> UCor0;
+	UCor0.resize(Usize, 0.0);
+
+	Ch_<std::vector<fv_prec>> VApr;
+	VApr.val.resize(Vsize, 0.0);
+	VApr.dval.resize(Vsize, 0.0);
+	std::vector<fv_prec> VCor_ed;
+	VCor_ed.resize(Vsize, 0.0);
+	std::vector<fv_prec> VCor0;
+	VCor0.resize(Vsize, 0.0);
+
+
+
 	std::vector<FVMeshNode*> FVMesh_PC;
-	Ch_<fv_prec> sum = 0;
-	for (auto e : Eps) { sum = sum + e; }
-
-	for (auto i : FVM.FiniteVolumes) {
-		PApr[i->m_id] = i->m_pressure.val;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			FVMesh_PC.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::P));
+		}
 	}
-	while (sum.dval - sum.val > 0.001) {
+
+	for (int i = 0;i < FVMesh_PC.size();i++) {
+		FVMesh_PC[i]->fv.fv->m_density.dval = FVMesh_PC[i]->fv.fv->m_density.val;
+		FVMesh_PC[i]->fv.fv->m_velocity.dval = FVMesh_PC[i]->fv.fv->m_velocity.val;
+		FVMesh_PC[i]->fv.fv->m_pressure.dval = FVMesh_PC[i]->fv.fv->m_pressure.val;
+	}
 
 
-		// ae ue* = SUM(anb unb*) + bu + dy(PP*-PE*)
-		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
-			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
-				FVMesh_VxA.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::UX));
+	bool whileCondition = true;
+	while (whileCondition) {
+		if (AlgoIteration > maxIteration) break;
+
+		std::wcout << "Iteration number " << AlgoIteration << "\n";
+		Presidual = 0.0;
+		MaxPresidual = 0.0;
+
+		Uresidual = 0.0;
+		MaxUresidual = 0.0;
+		Vresidual = 0.0;
+		MaxVresidual = 0.0;
+
+		residualScale = 0.0;
+		residualScaleU = 0.0;
+		residualScaleV = 0.0;
+		for (auto fvm : FVMesh_U) {
+			//  |_____|_____|_____|_____|
+			//  |     |     |     |     |
+			//  |  0  |  1  |  2  |  3  |
+			//  |_____|_____|_____|_____|
+			//
+			//  |________|_____|________|
+			//  |        |     |        |
+			//  |     0' |  1' |  2'    |
+			//  |________|_____|________|
+			//  D0' = (D1(x0'-x0)+D0(x1-x0'))/(x1-x0)
+
+			if (fvm->fv.fv->m_type == FVT_DEFAULT) {
+				//std::cout << "(" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id << "*(" << fvm->fv.fv->m_id << "," << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id << ")+" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id << "*(" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id << "," << fvm->fv.fv->m_id << "))/(" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id << "-" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id << ")\n";
+				fvm->fv.fv->m_DVisc = (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_DVisc* fvm->fv.fv->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()) + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_DVisc* FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->distance(fvm->fv.fv)) / (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()));
+				fvm->fv.fv->m_density.dval = (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_density.dval* fvm->fv.fv->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()) + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_density.dval* FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->distance(fvm->fv.fv)) / (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()));
+			}
+		}
+		for (auto fvm : FVMesh_V) {
+			//   _____ _     _____ _
+			//  |     |     |     |
+			//  |  12 |     |  8' |
+			//  |_____|_    |     |
+			//  |     |     |_____|_
+			//  |  8  |     |     |
+			//  |_____|_    |  4' |
+			//  |     |     |     |
+			//  |  4  |     |_____|_
+			//  |_____|_    |     |
+			//  |     |     |  0' |
+			//  |  0  |     |     |
+			//  |_____|_    |_____|_
+			//  D0' = (D4(y0'-y0)+D0(y4-y0'))/(y4-y0)
+
+			if (fvm->fv.fv->m_type == FVT_DEFAULT) {
+				//std::cout << "(" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->m_id << "*(" << fvm->fv.fv->m_id << "," << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()->m_id << ")+" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()->m_id << "*(" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->m_id << "," << fvm->fv.fv->m_id << "))/(" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->m_id << "-" << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()->m_id << ")=";
+				fvm->fv.fv->m_DVisc = (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->m_DVisc* fvm->fv.fv->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()) + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()->m_DVisc* FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->distance(fvm->fv.fv)) / (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()));
+				fvm->fv.fv->m_density.dval = (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->m_density.dval* fvm->fv.fv->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()) + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()->m_density.dval* FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->distance(fvm->fv.fv)) / (FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + last_x_fvs.size()]->FVPtr()->distance(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id]->FVPtr()));
 			}
 		}
 
 
+		// ‘P*(aP0 + sigma*SUM(aNB) - Spm*Vol*sigma) = SUM(‘NB * aNB) + ‘P0*(aP0 - (1-sigma)*SUM(aNB) - (1-sigma)*Spm0*Vol) + (1-sigma)*SUM(‘NB0 * aNB) + (1-sigma)*Spp0*Vol + sigma*Spp*Vol + dy*(P*P - P*E)
+		//      _          _             _               _              _              _                    _                      _                          _                  _              -            
+		for (auto fvm : FVMesh_U) {
+			fv_prec_3 Area_centre;
+			fv_prec Area;
+			fv_prec Volume;
+			fv_prec_3 InNormal;
+			switch (fvm->fv.fv->FVdim) {
+			case(FVA_S):
+				Volume = fvm->fv.fv->m_s.size();
+				break;
+			default:
+				break;
+			}
 
+			fv_prec effD;
+			fv_prec_3 vec_fv_to_nb;
+			fv_prec_3 vec_fv_to_b;
+			fv_prec_3 vec_b_to_nb;
+			fvm->fv.fv_coef = 0.0;
+			fvm->fv_source = 0.0;
+
+			fv_prec boundary_coefs = 0.0;
+			fv_prec b_coef = 0.0;
+			fv_prec b_vel = 0.0;
+
+			if (fvm->fv.fv->m_type == FVT_DEFAULT) {
+
+				for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+					FV_NB relativ_pos;
+					fv_prec Dnb_dir = 0.0;
+					fv_prec Fnb_dir = 0.0;
+					switch (fvm->fv.fv->FVdim) {
+					case(FVA_S):
+						for (auto fv_p : fvm->fv.fv->m_s.m_lineArray) {
+							bool NBIsFound = false;
+
+							if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+								//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+								if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+								}
+							}
+							else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+								for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+									if (fv_p == fv_nb) {
+										Area = fv_p.size();
+										Area_centre = fv_p.getCentre();
+										if (Area_centre.x > fvm->fv.fv->m_Centre.x) relativ_pos = NB_E;
+										if (Area_centre.x < fvm->fv.fv->m_Centre.x) relativ_pos = NB_W;
+										if (Area_centre.y > fvm->fv.fv->m_Centre.y) relativ_pos = NB_N;
+										if (Area_centre.y < fvm->fv.fv->m_Centre.y) relativ_pos = NB_S;
+										NBIsFound = true;
+										break;
+									}
+								}
+							}
+							if (!NBIsFound) continue;
+
+							vec_fv_to_nb = fvm->fv.fv->m_Centre - fvm->nb_fvs[nb].fv->m_Centre;
+							vec_fv_to_b = fvm->fv.fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - fvm->nb_fvs[nb].fv->m_Centre;
+							InNormal = glm::normalize(-vec_fv_to_b);
+
+							//std::cout << fvm->nb_fvs[nb].fv->m_type << "  ";
+							//std::cout << fvm->fv.fv->m_id << " (";
+							//switch (relativ_pos) {
+							//case(NB_E):
+							//	std::cout << "NB_E";
+							//	break;
+							//case(NB_W):
+							//	std::cout << "NB_W";
+							//	break;
+							//case(NB_N):
+							//	std::cout << "NB_N";
+							//	break;
+							//case(NB_S):
+							//	std::cout << "NB_S";
+							//	break;
+							//default:
+							//	break;
+							//}
+							//std::cout << "): " << fvm->nb_fvs[nb].fv->m_id << " ";
+							if (fvm->nb_fvs[nb].fv->m_type == FVT_DEFAULT) {
+								//std::cout << "\n";
+
+								fv_prec p_coef = fvm->nb_fvs[nb].fv->m_DVisc*vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb);;
+								fv_prec nb_coef = fvm->fv.fv->m_DVisc*vec_mod(vec_b_to_nb)/ vec_mod(vec_fv_to_nb);
+								effD = fvm->nb_fvs[nb].fv->m_DVisc*fvm->fv.fv->m_DVisc / (p_coef + nb_coef);
+								Dnb_dir = effD/ vec_mod(vec_fv_to_nb);
+								Fnb_dir = 0.5*(fvm->fv.fv->m_density.dval*fvm->fv.fv->m_velocity.dval.x + fvm->nb_fvs[nb].fv->m_density.dval*fvm->nb_fvs[nb].fv->m_velocity.dval.x);
+								switch (relativ_pos) {
+								case NB_E:
+								case NB_W:
+									Fnb_dir = 0.5*(fvm->fv.fv->m_density.dval*fvm->fv.fv->m_velocity.dval.x + fvm->nb_fvs[nb].fv->m_density.dval*fvm->nb_fvs[nb].fv->m_velocity.dval.x);
+									break;
+								case NB_N:
+									Fnb_dir = 0.5*(VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id]->m_density.dval*VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id]->m_velocity.dval.y + VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id]->m_density.dval *VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_id]->m_velocity.dval.y);
+									break;
+								case NB_S:
+									Fnb_dir = 0.5*(VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id]->m_density.dval*VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id]->m_velocity.dval.y + VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id]->m_density.dval*VVolumes[FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id]->m_velocity.dval.y);
+									break;
+								default:
+									break;
+								}
+								Dnb_dir *= Area;
+								Fnb_dir *= Area;
+								//std::cout << "Fnb_dir: " << Fnb_dir << " Dnb_dir:" << Dnb_dir << " - ";
+								// aNB							
+								{
+									// Diffusion
+									fvm->nb_fvs[nb].fv_coef = PeFunc(Fnb_dir / Dnb_dir) * Dnb_dir;
+									//std::cout << fvm->nb_fvs[nb].fv_coef << " - >";
+									// Convention
+									//fvm->nb_fvs[nb].fv_coef += glm::max(0.0f, Fnb_dir);
+									if (relativ_pos == NB_E) fvm->nb_fvs[nb].fv_coef += glm::max(-Fnb_dir, 0.0f);
+									if (relativ_pos == NB_W) fvm->nb_fvs[nb].fv_coef += glm::max(Fnb_dir, 0.0f);
+									if (relativ_pos == NB_N) fvm->nb_fvs[nb].fv_coef += glm::max(-Fnb_dir, 0.0f);
+									if (relativ_pos == NB_S) fvm->nb_fvs[nb].fv_coef += glm::max(Fnb_dir, 0.0f);
+									//std::cout << fvm->nb_fvs[nb].fv_coef << " ";
+								}
+								//fvm->nb_fvs[nb].fv_coef *= Area;
+								//boundary_coefs = 0.0;
+							}
+							else if (fvm->nb_fvs[nb].fv->m_type == FVT_BOUNDARY) {
+
+								b_coef = fvm->nb_fvs[nb].fv->fv_boundary->getVelocityCoefs().x;
+								//std::cout << b_coef << " ";
+								b_vel = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x;
+								//std::cout << b_vel << " ";
+
+								fv_prec p_coef = fvm->El().fv->m_DVisc / vec_mod(vec_fv_to_b);
+								boundary_coefs = 1.0 / (1.0 / p_coef + 1.0 / b_coef)*Area;
+								//boundary_coefs = 1.0 / (1.0 / (effD / (vec_mod(vec_fv_to_b))) + 1.0 / b_coef)*Area;
+
+								//if ((relativ_pos == NB_E) or (relativ_pos == NB_W)) boundary_coefs -= 0.001;
+								//std::cout << boundary_coefs;
+
+								fvm->fv.fv_coef += boundary_coefs * sigma;
+								fvm->fv_source -= fvm->fv.fv->m_velocity.dval.x * boundary_coefs * (1.0 - sigma);
+								fvm->fv_source += boundary_coefs * b_vel * sigma; // *(1 - sigma)
+								//std::cout << fvm->fv_source << "->";
+								fvm->fv_source += boundary_coefs * b_vel * (1.0 - sigma); //old boundary velocity
+								//std::cout << fvm->fv_source << "->";
+
+							}
+							/*
+							else if (fvm->nb_fvs[nb].fv->m_type == FVT_BOUNDARY) {
+								if (Area_centre.x > fvm->fv.fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->fv.fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->fv.fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->fv.fv->m_Centre.y) relativ_pos = NB_S;
+								vec_fv_to_b = fvm->fv.fv->m_Centre - Area_centre;
+
+								std::cout << fvm->fv.fv->m_id << " (";
+								switch (relativ_pos) {
+								case(NB_E):
+									std::cout << "NB_E";
+									break;
+								case(NB_W):
+									std::cout << "NB_W";
+									break;
+								case(NB_N):
+									std::cout << "NB_N";
+									break;
+								case(NB_S):
+									std::cout << "NB_S";
+									break;
+								default:
+									break;
+								}
+								std::cout << "): ";
+
+								switch (relativ_pos) {
+								case(NB_E):
+									std::cout << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->m_id << "\n";
+									effD = fvm->El().fv->m_DVisc;
+									b_coef = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->fv_boundary->getVelocityCoefs().x;
+									b_vel = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->fv_boundary->getVelocity().x;
+									boundary_coefs += 1.0 / (1.0 / (effD / (2.0*vec_mod(vec_fv_to_b))) + 1.0 / b_coef)*Area;
+									break;
+								case(NB_W):
+									std::cout << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_W)->m_id << "\n";
+									effD = fvm->El().fv->m_DVisc;
+									b_coef = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_W)->fv_boundary->getVelocityCoefs().x;
+									b_vel = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+									boundary_coefs += 1.0 / (1.0 / (effD / (2.0*vec_mod(vec_fv_to_b))) + 1.0 / b_coef)*Area;
+									break;
+								case(NB_N):
+									std::cout << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->m_id << "  " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->m_id << "\n";
+									effD = fvm->El().fv->m_DVisc;
+									b_coef = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocityCoefs().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocityCoefs().x);
+									b_vel = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocity().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocity().x);
+									boundary_coefs += 1.0 / (1.0 / (effD / vec_mod(vec_fv_to_b)) + 1.0 / b_coef)*Area;
+									break;
+								case(NB_S):
+									std::cout << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id << "  " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id << "\n";
+									effD = fvm->El().fv->m_DVisc;
+									b_coef = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->fv_boundary->getVelocityCoefs().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocityCoefs().x);
+									b_vel = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->fv_boundary->getVelocity().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocity().x);
+									boundary_coefs += 1.0 / (1.0 / (effD / vec_mod(vec_fv_to_b)) + 1.0 / b_coef)*Area;
+									break;
+								default:
+									break;
+								}
+							}
+							*/
+							//std::cout << "\n";
+							//fvm->fv.fv_coef -= Fnb_dir * Area;
+							if ((relativ_pos == NB_E) or (relativ_pos == NB_W)) fvm->fv.fv_coef += Fnb_dir * InNormal.x * Area;
+							if ((relativ_pos == NB_N) or (relativ_pos == NB_S)) fvm->fv.fv_coef += Fnb_dir * InNormal.y * Area;
+
+							//if (relativ_pos == NB_E) fvm->fv.fv_coef += Fnb_dir * Area;
+							//if (relativ_pos == NB_W) fvm->fv.fv_coef += -Fnb_dir * Area;
+							//if (relativ_pos == NB_N) fvm->fv.fv_coef += Fnb_dir * Area;
+							//if (relativ_pos == NB_S) fvm->fv.fv_coef += -Fnb_dir * Area;
+						}
+						break;
+					default:
+						break;
+					}
+					// sigma*SUM(aNB)
+					fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef * sigma;
+					//
+					// ‘P0*(1-sigma)*SUM(aNB)
+					fvm->fv_source -= fvm->fv.fv->m_velocity.dval.x * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+					// (1-sigma)*SUM(‘NB0 * aNB)
+					fvm->fv_source += fvm->nb_fvs[nb].fv->m_velocity.dval.x * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+
+
+
+
+
+
+
+				}
+				// Pressure
+				for (auto Pcor_fv_ls : FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_s.m_lineArray) {
+					for (auto Pcor_nb_ls : FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->m_s.m_lineArray) {
+						if (Pcor_fv_ls == Pcor_nb_ls) {
+							Area = Pcor_fv_ls.size();
+						}
+					}
+				}
+				// dy*(P*P - P*E)
+				fvm->fv_source += Area * (PApr[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)] - PApr[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]);
+				//std::cout << fvm->fv.fv->m_id << " -{" << fvm->fv.fv->m_id +(fvm->fv.fv->m_id)/(last_y_fvs.size()-1) << ", " << fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id ) / (last_y_fvs.size() - 1) << "}\n";
+
+				// Spm*Vol*sigma
+				fvm->fv.fv_coef -= fvm->sf.Spm.val * Volume*sigma;
+				// sigma*Spp*Vol
+				fvm->fv_source += fvm->sf.Spp.val * Volume*sigma;
+				// ‘P0*(1-sigma)*Spm0*Vol
+				fvm->fv_source -= fvm->fv.fv->m_velocity.val.x * fvm->sf.Spm.dval * Volume*(1.0 - sigma);
+				// (1-sigma)*Spp0*Vol
+				fvm->fv_source += fvm->sf.Spp.dval * Volume*(1.0 - sigma);
+
+
+				if (dt == 0) {}
+				else {
+					// aP0
+					fvm->fv.fv_coef += fvm->fv.fv->m_density.dval * Volume / dt;
+					// ‘P0*aP0
+					fvm->fv_source += fvm->fv.fv->m_velocity.val.x* fvm->fv.fv->m_density.val * Volume / dt;
+				}
+
+
+				//std::cout << fvm->getPtrToSide(NB_E) << " " << fvm->getPtrToSide(NB_W) << " " << fvm->getPtrToSide(NB_N) << " " << fvm->getPtrToSide(NB_S) <<"\n";
+				/*
+				fv_prec boundary_coefs = 0.0;
+				fv_prec b_coef = 0.0;
+				fv_prec b_vel = 0.0;
+				if (fvm->getPtrToSide(NB_E) == nullptr) {
+					bool ex_flag = false;
+					for (auto fv_p : fvm->fv.fv->m_s.m_lineArray) {
+						if (fv_p.getCentre().x > fvm->fv.fv->m_Centre.x) {
+							Area = fv_p.size();
+							Area_centre = fv_p.getCentre();
+							ex_flag = true;
+							break;
+						}
+					}
+					if (!ex_flag) continue;
+					vec_fv_to_b = fvm->fv.fv->m_Centre - Area_centre;
+					//std::cout << fvm->fv.fv->m_id << " (" << "NB_E-" << Area_centre.x << "," << Area_centre.y << "," << Area_centre.z <<"): " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->m_id << "\n";
+
+					effD = fvm->El().fv->m_DVisc;
+					b_coef = fvm->getPtrToSide(NB_E)->fv_boundary->getVelocityCoefs().x;
+					b_vel = fvm->getPtrToSide(NB_E)->fv_boundary->getVelocity().x;
+					//b_coef = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->fv_boundary->getVelocityCoefs().x;
+					//b_vel = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->fv_boundary->getVelocity().x;
+					//boundary_coefs += 1.0 / (1.0 / (effD / (2.0*vec_mod(vec_fv_to_b))) + 1.0 / b_coef)*Area;
+					boundary_coefs = 1.0 / (1.0 / (effD / (vec_mod(vec_fv_to_b))) + 1.0 / b_coef)*Area;
+
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv_source -= fvm->fv.fv->m_velocity.dval.x * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * b_vel * sigma; // *(1 - sigma)
+					//std::cout << fvm->fv_source << "->";
+					fvm->fv_source += boundary_coefs * b_vel * (1.0 - sigma); //old boundary velocity
+					//std::cout << fvm->fv_source << "->";
+				}
+				if (fvm->getPtrToSide(NB_W) == nullptr) {
+					bool ex_flag = false;
+					for (auto fv_p : fvm->fv.fv->m_s.m_lineArray) {
+						if (fv_p.getCentre().x < fvm->fv.fv->m_Centre.x) {
+							Area = fv_p.size();
+							Area_centre = fv_p.getCentre();
+							ex_flag = true;
+							break;
+						}
+					}
+					if (!ex_flag) continue;
+					vec_fv_to_b = fvm->fv.fv->m_Centre - Area_centre;
+					//std::cout << fvm->fv.fv->m_id << " (" << "NB_W-" << Area_centre.x << "," << Area_centre.y << "," << Area_centre.z << "): " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_W)->m_id << "\n";
+					effD = fvm->El().fv->m_DVisc;
+					b_coef = fvm->getPtrToSide(NB_W)->fv_boundary->getVelocityCoefs().x;
+					b_vel = fvm->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+					//b_coef = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_W)->fv_boundary->getVelocityCoefs().x;
+					//b_vel = FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+					//boundary_coefs += 1.0 / (1.0 / (effD / (2.0*vec_mod(vec_fv_to_b))) + 1.0 / b_coef)*Area;
+					boundary_coefs = 1.0 / (1.0 / (effD / (vec_mod(vec_fv_to_b))) + 1.0 / b_coef)*Area;
+
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv_source -= fvm->fv.fv->m_velocity.dval.x * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * b_vel * sigma; // *(1 - sigma)
+					//std::cout << fvm->fv_source << "->";
+					fvm->fv_source += boundary_coefs * b_vel * (1.0 - sigma); //old boundary velocity
+					//std::cout << fvm->fv_source << "->";
+				}
+				if (fvm->getPtrToSide(NB_N) == nullptr) {
+					bool ex_flag = false;
+					for (auto fv_p : fvm->fv.fv->m_s.m_lineArray) {
+						if (fv_p.getCentre().y > fvm->fv.fv->m_Centre.y) {
+							Area = fv_p.size();
+							Area_centre = fv_p.getCentre();
+							ex_flag = true;
+							break;
+						}
+					}
+					if (!ex_flag) continue;
+					vec_fv_to_b = fvm->fv.fv->m_Centre - Area_centre;
+					//std::cout << fvm->fv.fv->m_id << " (" << "NB_N-" << Area_centre.x << "," << Area_centre.y << "," << Area_centre.z << "): " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->m_id << "  " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->m_id << "\n";
+					effD = fvm->El().fv->m_DVisc;
+					b_coef = fvm->getPtrToSide(NB_N)->fv_boundary->getVelocityCoefs().x;
+					b_vel = fvm->getPtrToSide(NB_N)->fv_boundary->getVelocity().x;
+					//b_coef = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocityCoefs().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocityCoefs().x);
+					//b_vel = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocity().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_N)->fv_boundary->getVelocity().x);
+					boundary_coefs = 1.0 / (1.0 / (effD / vec_mod(vec_fv_to_b)) + 1.0 / b_coef)*Area;
+					//std::cout << boundary_coefs << "\n";
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv_source -= fvm->fv.fv->m_velocity.dval.x * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * b_vel * sigma; // *(1 - sigma)
+					//std::cout << fvm->fv_source << "->";
+					fvm->fv_source += boundary_coefs * b_vel * (1.0 - sigma); //old boundary velocity
+					//std::cout << fvm->fv_source << "->";
+				}
+				if (fvm->getPtrToSide(NB_S) == nullptr) {
+					bool ex_flag = false;
+					for (auto fv_p : fvm->fv.fv->m_s.m_lineArray) {
+						if (fv_p.getCentre().y < fvm->fv.fv->m_Centre.y) {
+							Area = fv_p.size();
+							Area_centre = fv_p.getCentre();
+							ex_flag = true;
+							break;
+						}
+					}
+					if (!ex_flag) continue;
+					vec_fv_to_b = fvm->fv.fv->m_Centre - Area_centre;
+					//std::cout << fvm->fv.fv->m_id << " (" << "NB_S-" << Area_centre.x << "," << Area_centre.y << "," << Area_centre.z << "): " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id << "  " << FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->m_id << "\n";
+					effD = fvm->El().fv->m_DVisc;
+					b_coef = fvm->getPtrToSide(NB_S)->fv_boundary->getVelocityCoefs().x;
+					b_vel = fvm->getPtrToSide(NB_S)->fv_boundary->getVelocity().x;
+					//b_coef = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->fv_boundary->getVelocityCoefs().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->fv_boundary->getVelocityCoefs().x);
+					//b_vel = 0.5*(FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->fv_boundary->getVelocity().x + FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + 1 + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_S)->fv_boundary->getVelocity().x);
+					boundary_coefs = 1.0 / (1.0 / (effD / vec_mod(vec_fv_to_b)) + 1.0 / b_coef)*Area;
+					//std::cout << boundary_coefs << "\n";
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv_source -= fvm->fv.fv->m_velocity.dval.x * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * b_vel * sigma; // *(1 - sigma)
+					//std::cout << fvm->fv_source << "->";
+					fvm->fv_source += boundary_coefs * b_vel * (1.0 - sigma); //old boundary velocity
+					//std::cout << fvm->fv_source << "->";
+				}
+				*/
+
+
+				fvm->fv.fv_coef /= (AlphaU);
+				fvm->fv_source += (1.0 - AlphaU)*fvm->fv.fv_coef*fvm->fv.fv->m_velocity.dval.x;
+			}
+		}
 		std::cout << "PHI_PARAMS::UX\n";
-		Solve(&FVMesh_VxA, &VelApr);
+		Matrix Umat(Solve(&FVMesh_U, &UApr.dval));
 
-		// an vn* = SUM(anb vnb*) + bv + dx(PP*-PN*)
-		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
-			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
-				FVMesh_VyA.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::UY));
+
+
+		// ‘P*(aP0 + sigma*SUM(aNB) - Spm*Vol) = SUM(‘NB * aNB) + ‘P0*(aP0 - (1-sigma)*SUM(aNB) - (1-sigma)*Spm0*Vol) + (1-sigma)*SUM(‘NB0 * aNB) + (1-sigma)*Spp0*Vol + sigma*Spp*Vol + dx*(P*P - P*N)
+		//      _          _             _               _              _              _                    _                      _                          _                  _              -            
+		for (auto fvm : FVMesh_V) {
+			fv_prec_3 Area_centre;
+			fv_prec Area;
+			fv_prec Volume;
+			fv_prec_3 InNormal;
+			switch (fvm->fv.fv->FVdim) {
+			case(FVA_S):
+				Volume = fvm->fv.fv->m_s.size();
+				break;
+			default:
+				break;
+			}
+
+			fv_prec effD;
+			fv_prec_3 vec_fv_to_nb;
+			fv_prec_3 vec_fv_to_b;
+			fv_prec_3 vec_b_to_nb;
+			fvm->fv.fv_coef = 0.0;
+			fvm->fv_source = 0.0;
+
+			fv_prec boundary_coefs = 0.0;
+			fv_prec b_coef = 0.0;
+			fv_prec b_vel = 0.0;
+
+			if (fvm->fv.fv->m_type == FVT_DEFAULT) {
+				for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+					FV_NB relativ_pos;
+					fv_prec Dnb_dir = 0.0;
+					fv_prec Fnb_dir = 0.0;
+					switch (fvm->fv.fv->FVdim) {
+					case(FVA_S):
+						for (auto fv_p : fvm->fv.fv->m_s.m_lineArray) {
+							bool NBIsFound = false;
+
+							if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+								//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+								if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+								}
+							}
+							else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+								for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+									if (fv_p == fv_nb) {
+										Area = fv_p.size();
+										Area_centre = fv_p.getCentre();
+										if (Area_centre.x > fvm->fv.fv->m_Centre.x) relativ_pos = NB_E;
+										if (Area_centre.x < fvm->fv.fv->m_Centre.x) relativ_pos = NB_W;
+										if (Area_centre.y > fvm->fv.fv->m_Centre.y) relativ_pos = NB_N;
+										if (Area_centre.y < fvm->fv.fv->m_Centre.y) relativ_pos = NB_S;
+										NBIsFound = true;
+										break;
+									}
+								}
+							}
+							if (!NBIsFound) continue;
+							vec_fv_to_nb = fvm->fv.fv->m_Centre - fvm->nb_fvs[nb].fv->m_Centre;
+							vec_fv_to_b = fvm->fv.fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - fvm->nb_fvs[nb].fv->m_Centre;
+							InNormal = glm::normalize(-vec_fv_to_b);
+
+
+							//std::cout << fvm->fv.fv->m_id << " (";
+							//switch (relativ_pos) {
+							//case(NB_E):
+							//	std::cout << "NB_E";
+							//	break;
+							//case(NB_W):
+							//	std::cout << "NB_W";
+							//	break;
+							//case(NB_N):
+							//	std::cout << "NB_N";
+							//	break;
+							//case(NB_S):
+							//	std::cout << "NB_S";
+							//	break;
+							//default:
+							//	break;
+							//}
+							//std::cout << "): " << fvm->nb_fvs[nb].fv->m_id << " ";
+							if (fvm->nb_fvs[nb].fv->m_type == FVT_DEFAULT) {
+								fv_prec p_coef = fvm->nb_fvs[nb].fv->m_DVisc*vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb);;
+								fv_prec nb_coef = fvm->fv.fv->m_DVisc*vec_mod(vec_b_to_nb) / vec_mod(vec_fv_to_nb);
+								effD = fvm->nb_fvs[nb].fv->m_DVisc*fvm->fv.fv->m_DVisc / (p_coef + nb_coef);
+								Dnb_dir = effD / vec_mod(vec_fv_to_nb);
+
+								switch (relativ_pos)
+								{
+								case NB_E:
+									Fnb_dir = 0.5*(UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) + (last_x_fvs.size() - 1)]->m_density.dval*UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) + (last_x_fvs.size() - 1)]->m_velocity.dval.x + UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size())]->m_density.dval*UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size())]->m_velocity.dval.x);
+									break;
+								case NB_W:
+									Fnb_dir = 0.5*(UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1 + (last_x_fvs.size() - 1)]->m_density.dval*UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1 + (last_x_fvs.size() - 1)]->m_velocity.dval.x + UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1]->m_density.dval*UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1]->m_velocity.dval.x);
+									break;
+								case NB_N:
+								case NB_S:
+									Fnb_dir = 0.5*(fvm->fv.fv->m_density.dval*fvm->fv.fv->m_velocity.dval.y + fvm->nb_fvs[nb].fv->m_density.dval*fvm->nb_fvs[nb].fv->m_velocity.dval.y);
+									break;
+								default:
+									break;
+								}
+								Dnb_dir *= Area;
+								Fnb_dir *= Area;
+								// aNB							
+								{
+									//std::cout << "Fnb_dir: " << Fnb_dir << " Dnb_dir:" << Dnb_dir << " - ";
+									// Diffusion
+									fvm->nb_fvs[nb].fv_coef = PeFunc(Fnb_dir / Dnb_dir) * Dnb_dir;
+									//std::cout << fvm->nb_fvs[nb].fv_coef << " - >";
+									// Convention
+									//fvm->nb_fvs[nb].fv_coef += glm::max(0.0f, Fnb_dir);
+									if (relativ_pos == NB_E) fvm->nb_fvs[nb].fv_coef += glm::max(-Fnb_dir, 0.0f);
+									if (relativ_pos == NB_W) fvm->nb_fvs[nb].fv_coef += glm::max(Fnb_dir, 0.0f);
+									if (relativ_pos == NB_N) fvm->nb_fvs[nb].fv_coef += glm::max(-Fnb_dir, 0.0f);
+									if (relativ_pos == NB_S) fvm->nb_fvs[nb].fv_coef += glm::max(Fnb_dir, 0.0f);
+									//std::cout << fvm->nb_fvs[nb].fv_coef << " ";
+								}
+								//fvm->nb_fvs[nb].fv_coef *= Area;
+								//boundary_coefs = 0.0;
+
+							}
+							else if (fvm->nb_fvs[nb].fv->m_type == FVT_BOUNDARY) {
+
+								b_coef = fvm->nb_fvs[nb].fv->fv_boundary->getVelocityCoefs().y;
+								//std::cout << b_coef << " ";
+								b_vel = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().y;
+								//std::cout << b_vel << " ";
+								effD = fvm->El().fv->m_DVisc;
+
+								fv_prec p_coef = effD / vec_mod(vec_fv_to_b);
+
+								//std::cout << effD << " " << vec_mod(vec_fv_to_b) << " ";
+								boundary_coefs = 1.0 / (1.0 / p_coef + 1.0 / b_coef)*Area;
+								//boundary_coefs = 1.0 / (1.0 / (effD / vec_mod(vec_fv_to_b)) + 1.0 / b_coef)*Area;
+
+								//if ((relativ_pos == NB_N) or (relativ_pos == NB_S)) boundary_coefs -= 0.001;
+
+								//std::cout << boundary_coefs;
+
+
+								fvm->fv.fv_coef += boundary_coefs * sigma;
+								fvm->fv_source -= fvm->fv.fv->m_velocity.dval.x * boundary_coefs * (1.0 - sigma);
+								fvm->fv_source += boundary_coefs * b_vel * sigma; // *(1 - sigma)
+								//std::cout << fvm->fv_source << "->";
+								fvm->fv_source += boundary_coefs * b_vel * (1.0 - sigma); //old boundary velocity
+								//std::cout << fvm->fv_source << "->";
+
+
+
+
+							}
+							//std::cout << "\n";
+							//fvm->fv.fv_coef -= Fnb_dir * Area;
+							if ((relativ_pos == NB_E) or (relativ_pos == NB_W)) fvm->fv.fv_coef += Fnb_dir * InNormal.x * Area;
+							if ((relativ_pos == NB_N) or (relativ_pos == NB_S)) fvm->fv.fv_coef += Fnb_dir * InNormal.y * Area;
+
+							//if (relativ_pos == NB_E) fvm->fv.fv_coef += Fnb_dir * Area;
+							//if (relativ_pos == NB_W) fvm->fv.fv_coef += -Fnb_dir * Area;
+							//if (relativ_pos == NB_N) fvm->fv.fv_coef += Fnb_dir * Area;
+							//if (relativ_pos == NB_S) fvm->fv.fv_coef += -Fnb_dir * Area;
+						}
+						break;
+					default:
+						break;
+					}
+					// sigma*SUM(aNB)
+					fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef * sigma;
+					//
+					// ‘P0*(1-sigma)*SUM(aNB)
+					fvm->fv_source -= fvm->fv.fv->m_velocity.dval.y * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+					// (1-sigma)*SUM(‘NB0 * aNB)
+					fvm->fv_source += fvm->nb_fvs[nb].fv->m_velocity.dval.y * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+
+
+
+
+				}
+				// Pressure
+				for (auto Pcor_fv_ls : FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_s.m_lineArray) {
+					for (auto Pcor_nb_ls : FVM.FiniteVolumeMesh[fvm->fv.fv->m_id + (fvm->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->m_s.m_lineArray) {
+						if (Pcor_fv_ls == Pcor_nb_ls) {
+							Area = Pcor_fv_ls.size();
+						}
+					}
+				}
+				// dx*(P*P - P*N)
+				fvm->fv_source += Area * (PApr[fvm->fv.fv->m_id] - PApr[fvm->fv.fv->m_id + last_x_fvs.size()]);
+				//std::cout << fvm->fv.fv->m_id << " -{" << fvm->fv.fv->m_id  << ", " << fvm->fv.fv->m_id + last_x_fvs.size() << "}\n";
+
+				// Spm*Vol*sigma
+				fvm->fv.fv_coef -= fvm->sf.Spm.val * Volume*sigma;
+				// sigma*Spp*Vol
+				fvm->fv_source += fvm->sf.Spp.val * Volume*sigma;
+				// ‘P0*(1-sigma)*Spm0*Vol
+				fvm->fv_source -= fvm->fv.fv->m_velocity.val.y * fvm->sf.Spm.dval * Volume*(1.0 - sigma);
+				// (1-sigma)*Spp0*Vol
+				fvm->fv_source += fvm->sf.Spp.dval * Volume*(1.0 - sigma);
+
+
+				if (dt == 0) {}
+				else {
+					// aP0
+					fvm->fv.fv_coef += fvm->fv.fv->m_density.dval * Volume / dt;
+					// ‘P0*aP0
+					fvm->fv_source += fvm->fv.fv->m_velocity.val.y* fvm->fv.fv->m_density.val * Volume / dt;
+				}
+
+				fvm->fv.fv_coef /= (AlphaV);
+				fvm->fv_source += (1.0 - AlphaV)*fvm->fv.fv_coef*fvm->fv.fv->m_velocity.dval.y;
 			}
 		}
-
-
-
 		std::cout << "PHI_PARAMS::UY\n";
-		Solve(&FVMesh_VyA, &VelApr);
+		Matrix Vmat(Solve(&FVMesh_V, &VApr.dval));
 
-		// ap PP' = SUM(anb PNB') + bp* , bp* = -{(Rhop-Rhop0)/dt dVp + SUM(Fnb*)} 
-		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
-			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
-				FVMesh_PC.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::P));
+
+		for (int fv = 0; fv < UApr.dval.size(); fv++) {
+			FVMesh_U[fv]->fv.fv->m_velocity.dval.x = UApr.dval[fv];
+		}
+		for (auto fvm : FVMesh_U) {
+			fvm->RecalcResidual();
+			Uresidual += fvm->residual;
+			if (MaxUresidual < abs(fvm->residual)) MaxUresidual = abs(fvm->residual);
+			for (auto fvnb : fvm->nb_fvs) {
+				residualScaleU += abs(fvnb.fv_coef*(fvm->fv.fv->m_velocity.dval.x - fvnb.fv->m_velocity.dval.x));
+			}
+
+		}
+		std::cout << "Uresidual= " << Uresidual << "\n";
+		std::cout << "MaxUresidual= " << MaxUresidual << "\n";
+		std::cout << "residualScaleU= " << residualScaleU << "\n";
+
+		for (int fv = 0; fv < VApr.dval.size(); fv++) {
+			FVMesh_V[fv]->fv.fv->m_velocity.dval.y = VApr.dval[fv];
+		}
+
+		for (auto fvm : FVMesh_V) {
+			fvm->RecalcResidual();
+			Vresidual += fvm->residual;
+			if (MaxVresidual < abs(fvm->residual)) MaxVresidual = abs(fvm->residual);
+			for (auto fvnb : fvm->nb_fvs) {
+				residualScaleV += abs(fvnb.fv_coef*(fvm->fv.fv->m_velocity.dval.y - fvnb.fv->m_velocity.dval.y));
 			}
 		}
+		std::cout << "Vresidual= " << Vresidual << "\n";
+		std::cout << "MaxVresidual= " << MaxVresidual << "\n";
+		std::cout << "residualScaleV= " << residualScaleV << "\n";
 
 
+		for (auto fvm : FVMesh_PC) {
+			fv_prec_3 Area_centre;
+			fv_prec Area;
+			fv_prec Volume;
+			fvm->fv.fv_coef = 0.0;
+			fv_prec de = 0.0; fv_prec dw = 0.0; fv_prec dn = 0.0; fv_prec ds = 0.0;
+			fv_prec ue = 0.0; fv_prec uw = 0.0; fv_prec vn = 0.0; fv_prec vs = 0.0;
+			for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+				FV_NB relativ_pos;
+				//boundary_coefs = 0.0;
+				fv_prec dens = fvm->El().fv->m_density.val;
+				//std::cout << dens << "\n";
+				switch (fvm->El().fv->FVdim) {
+				case(FVA_L):
+					break;
+				case(FVA_S):
+					Volume = fvm->El().fv->m_s.size();
+					for (auto fv_p : fvm->El().fv->m_s.m_lineArray) {
+						bool NBIsFound = false;
+						if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+							//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+							if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+								Area = fv_p.size();
+								Area_centre = fv_p.getCentre();
+								if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+								NBIsFound = true;
+							}
+						}
+						else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+							for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+								if (fv_p == fv_nb) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+									//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << fv_nb.m_p1.x << "," << fv_nb.m_p1.y << "},{" << fv_nb.m_p2.x << "," << fv_nb.m_p2.y << "}" << "\n";
+									//std::cout << fvm->fv.fv->m_id << " " <<  fvm->nb_fvs[nb].fv->m_id << " TUT\n";
+									break;
+								}
+							}
+						}
+						if (!NBIsFound) continue;
 
-		std::cout << "PHI_PARAMS::P\n";
-		Solve(&FVMesh_PC, &Pcor);
-		/*
-		// ue = ue* +de(PP'- PE')
-		for (auto i : FVM.FiniteVolumes) {
-			i->m_velocity.dval.x = VelApr[i->m_id].x + de * (Pcor[i->m_id] - Pcor[FVM.FiniteVolumeMesh[i->m_id].E]);
+						//std::cout << fvm->fv.fv->m_id << " (";
+						//switch (relativ_pos) {
+						//case(NB_E):
+						//	std::cout << "NB_E";
+						//	break;
+						//case(NB_W):
+						//	std::cout << "NB_W";
+						//	break;
+						//case(NB_N):
+						//	std::cout << "NB_N";
+						//	break;
+						//case(NB_S):
+						//	std::cout << "NB_S";
+						//	break;
+						//default:
+						//	break;
+						//}
+						//std::cout << "): ";
+						if (relativ_pos == NB_E) {
+							if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+								//std::cout << fvm->nb_fvs[nb].fv->m_id << "\n";
+								ue = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x;
+								//de = Area / FVMesh_U[]->fv.fv_coef;
+								de = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) << "\n";
+								ue = UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size())]->m_velocity.dval.x;
+								de = Area / FVMesh_U[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size())]->fv.fv_coef;
+								dens = 0.5*(fvm->fv.fv->m_density.dval + fvm->nb_fvs[nb].fv->m_density.dval);
+								fvm->nb_fvs[nb].fv_coef = dens * Area*de;
+								//std::cout << FVMesh_U[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size())]->fv.fv_coef << " ";
+							}
+							//std::cout << dens * Area*de << " ";
+						}
+						else if (relativ_pos == NB_W) {
+							if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+								//std::cout << fvm->nb_fvs[nb].fv->m_id << "\n";
+								uw = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x;
+								dw = 0.0;}
+							else {
+								//std::cout << fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1 << "\n";
+								uw = UVolumes[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1]->m_velocity.dval.x;
+								dw = Area / FVMesh_U[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1]->fv.fv_coef;
+								dens = 0.5*(fvm->fv.fv->m_density.dval + fvm->nb_fvs[nb].fv->m_density.dval);
+								fvm->nb_fvs[nb].fv_coef = dens * Area*dw;
+								//std::cout << FVMesh_U[fvm->fv.fv->m_id - (fvm->fv.fv->m_id) / (last_y_fvs.size()) - 1]->fv.fv_coef << " ";
+							}
+							//std::cout << dens * Area*dw << " ";
+						}
+						else if (relativ_pos == NB_N) {
+							if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+								//std::cout << fvm->nb_fvs[nb].fv->m_id << "\n";
+								vn = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().y;
+								dn = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id << "\n";
+								vn = VVolumes[fvm->fv.fv->m_id]->m_velocity.dval.y;
+								dn = Area / FVMesh_V[fvm->fv.fv->m_id]->fv.fv_coef;
+								dens = 0.5*(fvm->fv.fv->m_density.dval + fvm->nb_fvs[nb].fv->m_density.dval);
+								fvm->nb_fvs[nb].fv_coef = dens * Area*dn;
+								//std::cout << FVMesh_V[fvm->fv.fv->m_id]->fv.fv_coef << " ";
+							}
+							//std::cout << dens * Area*dn << " ";
+						}
+						else if (relativ_pos == NB_S) {
+							if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+								//std::cout << fvm->nb_fvs[nb].fv->m_id << "\n";
+								vs = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().y;
+								ds = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id - last_x_fvs.size() << "\n";
+								vs = VVolumes[fvm->fv.fv->m_id - last_x_fvs.size()]->m_velocity.dval.y;
+								ds = Area / FVMesh_V[fvm->fv.fv->m_id - last_x_fvs.size()]->fv.fv_coef;
+								dens = 0.5*(fvm->fv.fv->m_density.dval + fvm->nb_fvs[nb].fv->m_density.dval);
+								fvm->nb_fvs[nb].fv_coef = dens * Area*ds;
+								//std::cout << FVMesh_V[fvm->fv.fv->m_id - last_x_fvs.size()]->fv.fv_coef << " ";
+							}
+							//std::cout << dens * Area*ds << " ";
+						}
+						//std::cout << "\n";
+					}
+					break;
+				default:
+					break;
+				}
+				//if (relativ_pos == NB_E) { std::cout << "de=" << de << " - " << "ue=" << ue << "\n"; }
+				//else if (relativ_pos == NB_W) { std::cout << "dw=" << dw << " - " << "uw=" << uw << "\n"; }
+				//else if (relativ_pos == NB_N) { std::cout << "dn=" << dn << " - " << "vn=" << vn << "\n"; }
+				//else if (relativ_pos == NB_S) { std::cout << "ds=" << ds << " - " << "vs=" << vs << "\n"; }
+
+				fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef;
+				fvm->fv_source += dens * Area * (uw - ue + vs - vn);
+
+				de = 0.0;  dw = 0.0;  dn = 0.0;  ds = 0.0;
+				ue = 0.0;  uw = 0.0;  vn = 0.0;  vs = 0.0;
+			}
+
+			if (dt == 0) { }
+			else { fvm->fv_source -= (fvm->fv.fv->m_density.dval - fvm->fv.fv->m_density.val) * Volume / dt; }
 		}
+		std::cout << "PHI_PARAMS::P\n";
+
+		for (auto err : FVMesh_PC) {
+			Presidual += abs(err->fv_source);
+			if (MaxPresidual < abs(err->fv_source)) MaxPresidual = abs(err->fv_source);
+		}
+
+		SolveWithFirstZero(&FVMesh_PC, &Pcor);
+
+
+		fv_prec Area;
+		// ue = ue* +de(PP'- PE')
+		//std::cout << "UCor_ed: ";
+		for (auto fvmU : FVMesh_U) {
+			if (fvmU->fv.fv->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				for (auto fv_m : FVM.FiniteVolumeMesh[fvmU->fv.fv->m_id + (fvmU->fv.fv->m_id) / (last_y_fvs.size() - 1)]->FVPtr()->m_s.m_lineArray) {
+					for (auto fv_nb : FVM.FiniteVolumeMesh[fvmU->fv.fv->m_id + (fvmU->fv.fv->m_id) / (last_y_fvs.size() - 1)]->getPtrToSide(NB_E)->m_s.m_lineArray) {
+						if (fv_m == fv_nb) {
+							Area = fv_m.size();
+						}
+					}
+				}
+				//std::cout << fvmU->fv.fv->m_id << " - " << fvmU->fv.fv->m_id + (fvmU->fv.fv->m_id) / (last_y_fvs.size() - 1) << " " << fvmU->fv.fv->m_id + 1 + (fvmU->fv.fv->m_id) / (last_y_fvs.size() - 1) << "\n";
+				fvmU->fv.fv->m_velocity.dval.x = fvmU->fv.fv->m_velocity.dval.x + Area/ fvmU->fv.fv_coef*(Pcor[fvmU->fv.fv->m_id + (fvmU->fv.fv->m_id) / (last_y_fvs.size() - 1)] - Pcor[fvmU->fv.fv->m_id + 1 + (fvmU->fv.fv->m_id) / (last_y_fvs.size() - 1)]);
+				//std::cout << fvmU->fv.fv->m_velocity.dval.x << " ";
+			}
+		}
+		//std::cout << "\n";
 
 		// vn = vn* +dn(PP'- PN')
-		for (auto i : FVM.FiniteVolumes) {
-			i->m_velocity.dval.y = VelApr[i->m_id].y + dn * (Pcor[i->m_id] - Pcor[FVM.FiniteVolumeMesh[i->m_id].N]);
-		}
-		*/
-		// P = P* + P'
-		for (auto i : FVM.FiniteVolumes) {
-			if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
-				i->m_pressure.dval = Pcor[i->m_id] + PApr[i->m_id];
+		//std::cout << "VCor_ed: ";
+		for (auto fvmV : FVMesh_V) {
+			if (fvmV->fv.fv->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				for (auto fv_m : FVM.FiniteVolumeMesh[fvmV->fv.fv->m_id]->FVPtr()->m_s.m_lineArray) {
+					for (auto fv_nb : FVM.FiniteVolumeMesh[fvmV->fv.fv->m_id]->getPtrToSide(NB_N)->m_s.m_lineArray) {
+						if (fv_m == fv_nb) {
+							Area = fv_m.size();
+						}
+					}
+				}
+				//std::cout << fvmV->fv.fv->m_id << " - " << fvmV->fv.fv->m_id << " " << fvmV->fv.fv->m_id + last_y_fvs.size() << "\n";
+				fvmV->fv.fv->m_velocity.dval.y = fvmV->fv.fv->m_velocity.dval.y + Area / fvmV->fv.fv_coef*(Pcor[fvmV->fv.fv->m_id] - Pcor[fvmV->fv.fv->m_id + last_y_fvs.size()]);
+				//std::cout << fvmV->fv.fv->m_velocity.dval.y << " ";
 			}
 		}
+		//std::cout << "\n";
+
+		/*
+		//ÒÍÓÓÒÚË
+		std::cout << "\n";
+		std::cout << "Velocity.x: ";
+		for (auto fvm : FVM.FiniteVolumeMesh) {
+			if (fvm->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				fv_prec velE = 0.0;
+				fv_prec velW = 0.0;
+				//std::cout << (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				//std::cout << fvm->FVPtr()->m_id << ": ";
+				if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr) {
+					velW = fvm->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+					//std::cout << fvm->getPtrToSide(NB_W)->m_id << " ";
+				}
+				else {
+					velW = UCor_ed[fvm->getPtrToSide(NB_W)->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size())];
+					//std::cout << fvm->getPtrToSide(NB_W)->m_id- (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				}
+				if (fvm->getPtrToSide(NB_E)->fv_boundary != nullptr) {
+					velE = fvm->getPtrToSide(NB_E)->fv_boundary->getVelocity().x;
+					//std::cout << fvm->getPtrToSide(NB_E)->m_id << " ";
+				}
+				else {
+					velE = UCor_ed[fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size())];
+					//std::cout << fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				}
+				fvm->FVPtr()->m_velocity.dval.x = 0.5*(velW + velE);
+				//std::cout << "\n";
+				std::cout << fvm->FVPtr()->m_velocity.dval.x << " ";
+			}
+		}
+		std::cout << "\n";
+		std::cout << "Velocity.y: ";
+		for (auto fvm : FVM.FiniteVolumeMesh) {
+			if (fvm->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				fv_prec velN = 0.0;
+				fv_prec velS = 0.0;
+				//std::cout << (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				//std::cout << fvm->FVPtr()->m_id << ": ";
+				if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr) {
+					velS = fvm->getPtrToSide(NB_S)->fv_boundary->getVelocity().y;
+					//std::cout << fvm->getPtrToSide(NB_S)->m_id << " ";
+				}
+				else {
+					velS = VCor_ed[fvm->getPtrToSide(NB_S)->m_id];
+					//std::cout << fvm->getPtrToSide(NB_S)->m_id << " ";
+				}
+				if (fvm->getPtrToSide(NB_N)->fv_boundary != nullptr) {
+					velN = fvm->getPtrToSide(NB_N)->fv_boundary->getVelocity().y;
+					//std::cout << fvm->getPtrToSide(NB_N)->m_id << " ";
+				}
+				else {
+					velN = VCor_ed[fvm->FVPtr()->m_id];
+					//std::cout << fvm->FVPtr()->m_id << " ";
+				}
+				fvm->FVPtr()->m_velocity.dval.y = 0.5*(velS + velN);
+				std::cout << fvm->FVPtr()->m_velocity.dval.y << " ";
+				//std::cout << "\n";
+				//std::cout << velS << " " << velN << "\n";
+			}
+		}
+		std::cout << "\n";
+		*/
+
+
+
+		// P = P* + P'
+		//std::cout << "Pressure: ";
+		for (auto i : FVM.FiniteVolumes) {
+			if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				//i->m_pressure.val = i->m_pressure.dval;
+				i->m_pressure.dval = PApr[i->m_id] + AlphaP * Pcor[i->m_id];
+				//std::cout << i->m_pressure.dval << " ";
+			}
+		}
+		for(int i =0; i < FVM.FiniteVolumeMesh.size(); i++) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+				int m_id = FVM.FiniteVolumeMesh[i]->FVPtr()->m_id;
+				int nb_id = FVM.FiniteVolumeMesh[i]->NB_FVSPrt()[0]->m_id;
+				FV_NB nb_relative_pos;
+				if (FVM.FiniteVolumeMesh[m_id]->FVPtr()->m_Centre.x < FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre.x) nb_relative_pos = NB_E;
+				if (FVM.FiniteVolumeMesh[m_id]->FVPtr()->m_Centre.x > FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre.x) nb_relative_pos = NB_W;
+				if (FVM.FiniteVolumeMesh[m_id]->FVPtr()->m_Centre.y < FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre.y) nb_relative_pos = NB_N;
+				if (FVM.FiniteVolumeMesh[m_id]->FVPtr()->m_Centre.y > FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre.y) nb_relative_pos = NB_S;
+
+				int nb_nb_id = FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(nb_relative_pos)->m_id;
+				fv_prec diff31 = FVM.FiniteVolumeMesh[nb_nb_id]->FVPtr()->distance(FVM.FiniteVolumeMesh[i]->FVPtr());
+				fv_prec diff21 = FVM.FiniteVolumeMesh[nb_id]->FVPtr()->distance(FVM.FiniteVolumeMesh[i]->FVPtr());
+				fv_prec diff32= FVM.FiniteVolumeMesh[nb_nb_id]->FVPtr()->distance(FVM.FiniteVolumeMesh[nb_id]->FVPtr());
+
+				FVM.FiniteVolumeMesh[i]->FVPtr()->m_pressure.dval = (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_pressure.dval*(diff31) - FVM.FiniteVolumeMesh[nb_nb_id]->FVPtr()->m_pressure.dval*(diff21))/(diff32);
+			}
+		}
+
+
+		for (auto fvm : FVMesh_PC) {
+			for (auto fvnb : fvm->nb_fvs) {
+				residualScale += abs(fvnb.fv_coef*(fvm->fv.fv->m_pressure.dval - fvnb.fv->m_pressure.dval));
+			}
+		}
+		std::cout << "\n";
+		std::cout << "residualScale= " << residualScale << "\n";
 
 		// P* = P
 		for (auto i : FVM.FiniteVolumes) {
@@ -921,33 +2558,1740 @@ void FVM_CD::SIMPLE_ALGO() {
 				PApr[i->m_id] = i->m_pressure.dval;
 			}
 		}
+		
+		//std::cout << "U velocity\n";
+		//std::cout << "Max residual: " << MaxUresidual / residualScaleU * UVolumes.size() << "\n";
+		//std::cout << "Average residual: " << Uresidual / residualScaleU << "\n";
+		//
+		//std::cout << "V velocity\n";
+		//std::cout << "Max residual: " << MaxVresidual / residualScaleV * VVolumes.size() << "\n";
+		//std::cout << "Average residual: " << Vresidual / residualScaleV << "\n";
+		//
+		//std::cout << "Pressure\n";
+		//std::cout << "Max residual: " << MaxPresidual / residualScale * m_options.nrOfFV[FINITE_VOLUME_TYPE::FVT_DEFAULT] << "\n";
+		//std::cout << "Average residual: " << Presidual / residualScale << "\n";
+		//
+		//std::cout << "_________________________________________________ \n";
 
+
+		fv_prec MaxResidual = 0.0;
+		fv_prec AverageResidual = 0.0;
+
+		if (residualScaleU != 0.0) {
+			if (AverageResidual < Uresidual / residualScaleU) {
+				AverageResidual = Uresidual / residualScaleU;
+				MaxResidual = MaxUresidual / residualScaleU * UVolumes.size();
+			}
+		}
+		if (residualScaleV != 0.0) {
+			if (AverageResidual < Vresidual / residualScaleV) {
+				AverageResidual = Vresidual / residualScaleV;
+				MaxResidual = MaxVresidual / residualScaleV * VVolumes.size();
+			}
+		}
+		if (residualScale != 0.0) {
+			if (AverageResidual < Presidual / residualScale) {
+				AverageResidual = Presidual / residualScale;
+				MaxResidual = MaxPresidual / residualScale * m_options.nrOfFV[FINITE_VOLUME_TYPE::FVT_DEFAULT];
+			}
+		}
+
+
+
+
+
+
+
+
+		std::cout << "Average residual: " << AverageResidual << ", MaxResidual: " << MaxResidual << "\n";
+		std::cout << "_________________________________________________ \n";
+		// (FVMesh_PC[i]->fv.fv->m_density.dval)_Recalculation
+
+		if (AverageResidual < Eps) {
+			whileCondition = false;
+		}
+
+		AlgoIteration++;
+	}
+
+	//std::cout << "velocity.x ";
+	//std::cout << "velocity.y ";
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		if(fvm->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT){
+			if (fvm->getPtrToSide(NB_E)->fv_boundary != nullptr) {
+				//std::cout << "NB_E ";
+				//std::cout << fvm->FVPtr()->m_id << " " << fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size()) - 1 << " " << fvm->getPtrToSide(NB_E)->m_id << "\n";
+				fvm->FVPtr()->m_velocity.val.x = 0.5*(FVMesh_U[fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size()) - 1]->fv.fv->m_velocity.dval.x + fvm->getPtrToSide(NB_E)->fv_boundary->getVelocity().x);
+			}
+			else if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr) {
+				//std::cout << "NB_W ";
+				//std::cout << fvm->FVPtr()->m_id << " " << fvm->getPtrToSide(NB_W)->m_id << " " << fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size()) << "\n";
+				fvm->FVPtr()->m_velocity.val.x = 0.5*(fvm->getPtrToSide(NB_W)->fv_boundary->getVelocity().x + FVMesh_U[fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size())]->fv.fv->m_velocity.dval.x);
+
+			}
+			else {
+				//std::cout << fvm->FVPtr()->m_id << " " << fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size()) - 1 << " " << fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size()) << "\n";
+				fvm->FVPtr()->m_velocity.val.x = 0.5*(FVMesh_U[fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size()) - 1]->fv.fv->m_velocity.dval.x + FVMesh_U[fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_y_fvs.size())]->fv.fv->m_velocity.dval.x);
+
+			}
+			//std::cout << fvm->FVPtr()->m_velocity.val.x << " ";
+
+
+			if (fvm->getPtrToSide(NB_N)->fv_boundary != nullptr) {
+				//std::cout << "NB_N ";
+				//std::cout << fvm->FVPtr()->m_id << " " << fvm->FVPtr()->m_id - last_y_fvs.size() << " " << fvm->getPtrToSide(NB_N)->m_id << "\n";
+				fvm->FVPtr()->m_velocity.val.y = 0.5*(VVolumes[fvm->FVPtr()->m_id - last_y_fvs.size()]->m_velocity.dval.y + fvm->getPtrToSide(NB_N)->fv_boundary->getVelocity().y);
+
+			}
+			else if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr) {
+				//std::cout << "NB_S ";
+				//std::cout << fvm->FVPtr()->m_id << " " << fvm->getPtrToSide(NB_S)->m_id << " " << fvm->FVPtr()->m_id << "\n";
+				fvm->FVPtr()->m_velocity.val.y = 0.5*(fvm->getPtrToSide(NB_S)->fv_boundary->getVelocity().y + UVolumes[fvm->FVPtr()->m_id]->m_velocity.dval.y);
+
+			}
+			else {
+				//std::cout << fvm->FVPtr()->m_id << " " << fvm->FVPtr()->m_id - last_y_fvs.size() << " " << fvm->FVPtr()->m_id << "\n";
+				fvm->FVPtr()->m_velocity.val.y = 0.5*(VVolumes[fvm->FVPtr()->m_id - last_y_fvs.size()]->m_velocity.dval.y + VVolumes[fvm->FVPtr()->m_id]->m_velocity.dval.y);
+
+			}
+			//std::cout << fvm->FVPtr()->m_velocity.val.y << " ";
+		}
 
 	}
-	for (auto i : FVMesh_VxA) { delete i; }
-	FVMesh_VxA.resize(0);
-	for (auto i : FVMesh_VyA) { delete i; }
-	FVMesh_VyA.resize(0);
+	//std::cout << "\n";
+
+	for (auto i : FVM.FiniteVolumes) {
+		if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			i->m_pressure.val = PApr[i->m_id];
+		}
+	}
+
+
+	for (auto i : FVMesh_U) { delete i; }
+	FVMesh_U.resize(0);
+	for (auto i : FVMesh_V) { delete i; }
+	FVMesh_V.resize(0);
 	for (auto i : FVMesh_PC) { delete i; }
 	FVMesh_PC.resize(0);
 
 
+	/*
+	std::vector<fv_prec> PApr;
+	PApr.resize(FVM.FiniteVolumes.size(), 0.0);
+	std::vector<fv_prec> Pcor;
+	Pcor.resize(FVM.FiniteVolumes.size(), 0.0);
 
+
+	fv_prec sigma = 1.0;
+
+
+
+	fv_prec AlphaP = 0.8;
+	fv_prec AlphaU = 0.5;
+	fv_prec AlphaV = 0.5;
+	fv_prec AlphaW = 0.5;
+
+	std::vector<FVMeshNode*> FVMesh_VxA;
+	std::vector<FVMeshNode*> FVMesh_VyA;
+	std::vector<FVMeshNode*> FVMesh_PC;
+
+	for (auto i : FVM.FiniteVolumes) {
+		//i->m_pressure.dval = i->m_pressure.val;
+		PApr[i->m_id] = i->m_pressure.val;
+		i->m_pressure.dval = i->m_pressure.val;
+		i->m_velocity.dval = i->m_velocity.val;
+		//  ÕŒ Õ¿ƒŒ œ≈–≈—“–Œ»“‹ «Õ¿◊≈Õ»ﬂ Œ“ ÕŒ–Ã¿À‹Õ€’  Œ   —Ã≈Ÿ≈ÕÕ€Ã ƒÀﬂ — Œ–Œ—“», » “Œ√ƒ¿ ”Ã≈Õ‹ÿ»“‹ –¿«Ã≈–€ UCor_ed, VCor_ed, WCor_ed
+		//  Õ” “Œ√ƒ¿ œŒÃ≈Õﬂ“‹ » –¿«Ã≈–€ UApr, VApr, WApr
+	}
+
+
+	std::vector<int> last_x_fvs;
+	std::vector<int> last_y_fvs;
+	fv_prec max_x = 0.0; fv_prec max_y = 0.0; fv_prec max_z = 0.0;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (max_x < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x) max_x = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x;
+		if (max_y < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y) max_y = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y;
+		if (max_z < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.z) max_z = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.z;
+	}
+	max_x = 1.00 - m_options.average_dim_steps.x;
+	max_y = 1.00 - m_options.average_dim_steps.y;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x >= max_x) { last_x_fvs.push_back(i); }
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y >= max_y) { last_y_fvs.push_back(i); }
+		}
+	}
+
+	int num_of_def = 0;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			num_of_def++;
+		}
+	}
+
+
+	Ch_<std::vector<fv_prec>> UApr;
+	UApr.val.resize(num_of_def - last_x_fvs.size(), 0.0);
+	UApr.dval.resize(num_of_def - last_x_fvs.size(), 0.0);
+	std::vector<fv_prec> UCor_ed;
+	UCor_ed.resize(num_of_def - last_x_fvs.size(), 0.0);
+	std::vector<fv_prec> UCor0;
+	UCor0.resize(num_of_def - last_x_fvs.size(), 0.0);
+
+	Ch_<std::vector<fv_prec>> VApr;
+	VApr.val.resize(num_of_def - last_y_fvs.size(), 0.0);
+	VApr.dval.resize(num_of_def - last_y_fvs.size(), 0.0);
+	std::vector<fv_prec> VCor_ed;
+	VCor_ed.resize(num_of_def - last_y_fvs.size(), 0.0);
+	std::vector<fv_prec> VCor0;
+	VCor0.resize(num_of_def - last_y_fvs.size(), 0.0);
+
+
+	std::vector<fv_prec> WApr;
+	WApr.resize(FVM.FiniteVolumes.size(), 0.0);
+	std::vector<fv_prec> WCor_ed;
+	WCor_ed.resize(FVM.FiniteVolumes.size(), 0.0);
+
+
+	std::cout << "UCor0[n]: ";
+	int n = 0;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		if (((fvm->FVPtr()->m_id + 1) % last_y_fvs.size() != 0) and (n < num_of_def - last_x_fvs.size())) {
+			UCor0[n] = 0.5*(fvm->FVPtr()->m_velocity.val.x + fvm->getPtrToSide(NB_E)->m_velocity.val.x);
+			UCor_ed[n] = 0.5*(fvm->FVPtr()->m_velocity.dval.x + fvm->getPtrToSide(NB_E)->m_velocity.dval.x);
+			std::cout << UCor0[n] << " ";
+			n++;
+		}
+	}
+	std::cout << "\n";
+
+
+	std::cout << "VCor0[n]: ";
+	n = 0;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		if (n < num_of_def - last_y_fvs.size()) {
+			VCor0[n] = 0.5*(fvm->FVPtr()->m_velocity.val.y + fvm->getPtrToSide(NB_N)->m_velocity.val.y);
+			VCor_ed[n] = 0.5*(fvm->FVPtr()->m_velocity.dval.y + fvm->getPtrToSide(NB_N)->m_velocity.dval.y);
+			std::cout << VCor0[n] << " ";
+			n++;
+		}
+	}
+	std::cout << "\n";
+
+	//for (int i = 0; i < VCor0.size();i++) {	std::cout << "{" << UCor_ed[i] << ", " << VCor_ed[i] << "}\n"; }
+
+	//n = 0;
+	//for (auto fvm : FVM.FiniteVolumeMesh) {
+	//	if (n < num_of_def - last_x_fvs.size()) {
+	//		VCor_ed[n] = fvm->FVPtr()->m_velocity.val.x + fvm->getPtrToSide(NB_N)->m_velocity.val.x;
+	//		n++;
+	//	}
+	//}
+
+	std::cout << "Err: " << abs(sum.dval - sum.val) << "\n";
+	while (abs(sum.dval - sum.val) > 0.00001) {
+
+
+		// ae ue* = SUM(anb unb*) + bu + dy(PP*-PE*)
+		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				float skip_flag = false;
+				for (auto x : last_x_fvs) { if (x == i) { skip_flag = true; } }
+				if (skip_flag) { continue; }
+				FVMesh_VxA.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::UX));
+			}
+		}
+		fv_prec effD;
+		fv_prec_3 vec_fv_to_nb;
+		fv_prec_3 vec_fv_to_b;
+		fv_prec_3 vec_b_to_nb;
+		fv_prec Area;
+		fv_prec Volume;
+		fv_prec_3 Area_centre;
+		fv_prec boundary_coefs;
+		fv_prec Dnb_dir = 0.0;
+		fv_prec Fnb_dir = 0.0;
+		fv_prec FP0;
+		fv_prec FNB0;
+		fv_prec Dens = 1000.0;
+		fv_prec Dens0;
+		fv_prec DensNB;
+
+		// ‘P*(aP0 + sigma*SUM(aNB) - Spm*Vol) = SUM(‘NB * aNB) + ‘P0*(aP0 - (1-sigma)*SUM(aNB) - (1-sigma)*Spm0*Vol) + (1-sigma)*SUM(‘NB0 * aNB) + (1-sigma)*Spp0*Vol + sigma*Spp*Vol + dy*(P*P - P*E)
+		//      +          +             +               +              +              +                    +                      +                                                            +            
+		glm::max(0.0, 0.1);
+
+		int main_innerid = 0;
+		for (auto fvm : FVMesh_VxA) {
+			fv_prec ap0;
+			fvm->fv.fv_coef = 0.0;
+			Dens0 = fvm->El().fv->m_density.val;
+			fvm->fv.innerid = main_innerid;
+			//std::cout << fvm->El().fv->m_id << " ";
+			for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+				FV_NB relativ_pos;
+				boundary_coefs = 0.0;
+				fvm->nb_fvs[nb].fv_coef = 0.0;
+
+				switch (fvm->El().fv->FVdim) {
+				case(FVA_L):
+					break;
+				case(FVA_S):
+					Volume = fvm->El().fv->m_s.size();
+					for (auto fv_p : fvm->El().fv->m_s.m_lineArray) {
+						bool NBIsFound = false;
+						if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+							//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+							if(fv_p == fvm->nb_fvs[nb].fv->m_l) {
+								Area = fv_p.size();
+								Area_centre = fv_p.getCentre();
+								if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+								NBIsFound = true;
+							}
+						}
+						else if(fvm->nb_fvs[nb].fv->FVdim == FVA_S){
+							for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+								if (fv_p==fv_nb) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+									break;
+								}
+							}
+						}
+						if (!NBIsFound) continue;
+						//std::cout << relativ_pos << "\n";
+						int nb_id = fvm->nb_fvs[nb].fv->m_id;
+						if ((relativ_pos == NB_E) and ((fvm->nb_fvs[nb].fv->m_id + 1) % (last_x_fvs.size()) == 0)) {
+							nb_id = FVM.FiniteVolumeMesh[fvm->nb_fvs[nb].fv->m_id]->getPtrToSide(NB_E)->m_id;
+						}
+
+
+						int innerid;				
+						if (fvm->nb_fvs[nb].fv->m_id >= m_options.nrOfFVinDir.x* m_options.nrOfFVinDir.y) {
+							innerid = fvm->nb_fvs[nb].fv->m_id;
+						}
+						else {
+							if ((fvm->nb_fvs[nb].fv->m_Centre.x < max_x)) innerid = fvm->nb_fvs[nb].fv->m_id - fvm->nb_fvs[nb].fv->m_id / last_x_fvs.size();
+							else innerid = FVM.FiniteVolumeMesh[fvm->nb_fvs[nb].fv->m_id - fvm->nb_fvs[nb].fv->m_id / last_x_fvs.size()]->getPtrToSide(NB_E)->m_id;
+						}
+						fvm->nb_fvs[nb].innerid = innerid;
+						//std::cout << innerid << "\n";
+
+						// Pressure
+						// dy*(P*P - P*E)
+						if (relativ_pos == NB_E) {
+							fvm->fv_source += Area * (PApr[fvm->El().fv->m_id] - PApr[fvm->nb_fvs[nb].fv->m_id]);
+							//std::cout << fvm->fv_source << "->";
+						}
+
+						if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+							vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;;
+							vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+
+
+							if (relativ_pos == NB_E) {}
+							if (relativ_pos == NB_W) {}
+							if (relativ_pos == NB_N) {}
+							if (relativ_pos == NB_S) {}
+
+							//;
+
+						}
+
+						if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+							vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;;
+							vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+
+							effD = (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc * fvm->El().fv->m_DVisc) / ((FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + (fvm->El().fv->m_DVisc *vec_mod(vec_b_to_nb) / vec_mod(vec_fv_to_nb)));
+							Dnb_dir = (effD * Area) / vec_mod(vec_fv_to_nb);
+
+							fv_prec_3 vel({0.0,0.0,0.0}); // {UCor_ed[i->m_id],VCor_ed[i->m_id],WCor_ed[i->m_id]}
+							vel.x = 0.5*(UCor_ed[fvm->fv.innerid] + UCor_ed[fvm->nb_fvs[nb].innerid]);
+
+							if (relativ_pos == NB_E) vel.y = FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.y;
+							if (relativ_pos == NB_W) vel.y = fvm->El().fv->m_velocity.dval.y;
+							//›“Œ —ÀŒ∆ÕŒ
+							if (relativ_pos == NB_N) vel.y = 0.25*(fvm->El().fv->m_velocity.dval.y + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.y + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_N)->m_velocity.dval.y + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_N)->m_id]->FVPtr()->m_velocity.dval.y);
+							if (relativ_pos == NB_S) vel.y = 0.25*(fvm->El().fv->m_velocity.dval.y + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.y + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_S)->m_velocity.dval.y + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_S)->m_id]->FVPtr()->m_velocity.dval.y);
+
+							
+
+
+							//Fnb_dir = Dens0 * (sqrt(pow(vel.x, 2) + pow(vel.y, 2) + pow(vel.z, 2))) * Area;
+							//Fnb_dir = Dens0 * vel.x * Area;
+							//// aNB							
+							//{
+							//	// Diffusion
+							//	fvm->nb_fvs[nb].fv_coef += PeFunc(abs(Fnb_dir / Dnb_dir)) * Dnb_dir;
+							//	// Convention
+							//	if ((relativ_pos == NB_E) and Fnb_dir < 0) fvm->nb_fvs[nb].fv_coef -= Fnb_dir;
+							//	if ((relativ_pos == NB_W) and Fnb_dir > 0) fvm->nb_fvs[nb].fv_coef += Fnb_dir;
+							//}
+							fvm->nb_fvs[nb].fv_coef += Dnb_dir;
+						}
+						else if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+							switch (relativ_pos)
+							{
+							case NB_E:
+							case NB_W:
+								// œÓÍ‡ ÌÂ ÔÓÌˇÎ Ì‡‰Ó, Ë ÂÒÎË Ì‡‰Ó ÚÓ Í‡Í ÚÓ˜ÌÓ ÔÓÒ˜ËÚ‡¸? ≈ÒÎË ÌÂ„‰Â ÚÓ˜ÌÓ„Ó ‡Ò˜ÂÚ‡ ÌÂÚ, ÚÓ Ì‡‚ÂÌÓÂ ÌÂ Ì‡‰Ó
+								break;
+							case NB_N:
+							case NB_S:
+								// ›ÚÓ ‚ÓÁÏÓÊÌÓ ÚÓÊÂ ÌÂ Ì‡‰Ó
+								vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+								vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+								effD = fvm->El().fv->m_DVisc;
+								boundary_coefs += 1.0 / (1.0 / (effD* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + 1.0 / fvm->nb_fvs[nb].fv->fv_boundary->getVelocityCoefs().x)*Area;
+								//std::cout << "nb.fv->fv_boundary->getVelocityCoefs().x:" << nb.fv->fv_boundary->getVelocityCoefs().x << "\n";
+								break;
+							default:
+								break;
+							}
+						
+						}
+						//Ã˚ Ì‡ „‡ÌËˆÂ Ë ÁÌ‡ÂÏ Â∏ Ô‡‡ÏÂÚ˚
+					}
+					break;
+				default:
+					break;
+				}
+				FP0 = UCor0[fvm->fv.innerid]; // UCor_ed[fvm->El().fv->m_id]
+				FNB0 = UCor0[fvm->nb_fvs[nb].innerid]; // UCor_ed[fvm->nb_fvs[nb].fv->m_id]
+				// sigma*SUM(aNB)
+				fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef * sigma;  // 
+				if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv.fv_coef -= FP0 * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x * sigma; // *(1 - sigma)
+					//std::cout << fvm->fv_source << "->";
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x * (1.0 - sigma);
+					//std::cout << fvm->fv_source << "->";
+				}
+				// ‘P0*(1-sigma)*SUM(aNB)
+				fvm->fv_source -= FP0 * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+				// (1-sigma)*SUM(‘NB0 * aNB)
+				fvm->fv_source += FNB0 * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+			}
+
+			// Spm*Vol
+			fvm->fv.fv_coef -= fvm->sf.Spm.val * Volume;
+			// ‘P0*(1-sigma)*Spm0*Vol
+			fvm->fv_source -= FP0 * fvm->sf.Spm.dval * Volume*(1.0 - sigma);
+			// (1-sigma)*Spp0*Vol
+			fvm->fv_source += fvm->sf.Spp.dval * Volume*(1.0 - sigma);// *(1 - sigma)
+			// sigma*Spp*Vol
+			fvm->fv_source += fvm->sf.Spp.val * Volume*sigma;// *sigma
+
+
+			// aP0
+			if (dt == 0) { ap0 = 0.0; }
+			else { ap0 = Dens0 * Volume / dt; }
+			fvm->fv.fv_coef += ap0;
+			// ‘P0*aP0
+			FP0 = UCor0[fvm->fv.innerid]; // UCor_ed[fvm->El().fv->m_id]
+			fvm->fv_source += FP0 * ap0;
+
+			//std::cout <<  "\n";
+			main_innerid++;
+		}
+		std::cout << "PHI_PARAMS::UX\n";
+		Solve(&FVMesh_VxA, &UApr.dval);
+
+		// an vn* = SUM(anb vnb*) + bv + dx(PP*-PN*)
+		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				float skip_flag = false;
+				for (auto y : last_y_fvs) { if (y == i) { skip_flag = true; } }
+				if (skip_flag) { continue; }
+				FVMesh_VyA.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::UY));
+			}
+		}
+		Dnb_dir = 0.0;
+		Fnb_dir = 0.0;
+
+		// ‘P*(aP0 + sigma*SUM(aNB) - Spm*Vol) = SUM(‘NB * aNB) + ‘P0*(aP0 - (1-sigma)*SUM(aNB) - (1-sigma)*Spm0*Vol) + (1-sigma)*SUM(‘NB0 * aNB) + (1-sigma)*Spp0*Vol + sigma*Spp*Vol + dx*(P*P - P*N)
+		//      +          +             +               +              +              +                    +                      +                                                            +            
+		for (auto fvm : FVMesh_VyA) {
+			fv_prec ap0;
+			fvm->fv.fv_coef = 0.0;
+			Dens0 = fvm->El().fv->m_density.val;
+			for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+				FV_NB relativ_pos;
+				boundary_coefs = 0.0;
+				fvm->nb_fvs[nb].fv_coef = 0.0;
+				switch (fvm->El().fv->FVdim) {
+				case(FVA_L):
+					break;
+				case(FVA_S):
+					Volume = fvm->El().fv->m_s.size();
+					for (auto fv_p : fvm->El().fv->m_s.m_lineArray) {
+						bool NBIsFound = false;
+						if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+							//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+							if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+								Area = fv_p.size();
+								Area_centre = fv_p.getCentre();
+								if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+								NBIsFound = true;
+							}
+						}
+						else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+							for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+								if (fv_p==fv_nb) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+									break;
+								}
+							}
+						}
+						if (!NBIsFound) continue;
+						//std::cout << relativ_pos << "\n";
+						//std::cout << VCor_ed.size() << "  " << VCor_ed.size() + last_y_fvs.size() << "\n";
+						int nb_id = fvm->nb_fvs[nb].fv->m_id;
+						if ((relativ_pos == NB_N) and (fvm->El().fv->m_id >= FVMesh_VyA.size())) {
+							nb_id = FVM.FiniteVolumeMesh[fvm->nb_fvs[nb].fv->m_id]->getPtrToSide(NB_N)->m_id;
+						}
+						if ((nb_id >= VCor_ed.size()) and (nb_id < VCor_ed.size() + last_y_fvs.size())) {
+							nb_id = FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_N)->m_id;
+						}
+						//std::cout << " " << fvm->El().fv->m_id << " " << nb_id << " " << relativ_pos  << " "<< "\n"; // —“–¿ÕÕŒ
+
+
+						int innerid = fvm->nb_fvs[nb].fv->m_id;
+						fvm->nb_fvs[nb].innerid = innerid;
+
+
+						// Pressure
+						// dx*(P*P - P*N)
+						if (relativ_pos == NB_N) {
+							//std::cout << fvm->El().fv->m_id <<" - " << fvm->nb_fvs[nb].fv->m_id << "\n";
+							fvm->fv_source += Area * (PApr[fvm->El().fv->m_id] - PApr[fvm->nb_fvs[nb].fv->m_id]);
+						}
+
+						if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+							vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+							vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+
+							effD = (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc * fvm->El().fv->m_DVisc) / ((FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + (fvm->El().fv->m_DVisc *vec_mod(vec_b_to_nb) / vec_mod(vec_fv_to_nb)));
+							Dnb_dir = (effD * Area) / vec_mod(vec_fv_to_nb);
+							fv_prec_3 vel(fvm->El().fv->m_velocity.val); // {UCor_ed[i->m_id],VCor_ed[i->m_id],WCor_ed[i->m_id]}
+							//std::cout << fvm->fv.innerid << " " << fvm->nb_fvs[nb].innerid << "\n";
+							//std::cout << VCor_ed[fvm->fv.innerid] <<", " << VCor_ed[fvm->nb_fvs[nb].innerid] << " ";
+							vel.y = 0.5*(VCor_ed[fvm->fv.innerid] + VCor_ed[fvm->nb_fvs[nb].innerid]);
+							//std::cout << vel.y << "\n";
+
+							if (relativ_pos == NB_N) vel.x = FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.x;
+							if (relativ_pos == NB_S) vel.x = fvm->El().fv->m_velocity.dval.x;
+							//›“Œ —ÀŒ∆ÕŒ
+							if (relativ_pos == NB_E) vel.x = 0.25*(fvm->El().fv->m_velocity.dval.x + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.x + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_E)->m_velocity.dval.x + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_E)->m_id]->FVPtr()->m_velocity.dval.x);
+							if (relativ_pos == NB_W) vel.x = 0.25*(fvm->El().fv->m_velocity.dval.x + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.x + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_W)->m_velocity.dval.x + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_W)->m_id]->FVPtr()->m_velocity.dval.x);
+
+							//Fnb_dir = Dens0 * (sqrt(pow(vel.x, 2) + pow(vel.y, 2) + pow(vel.z, 2))) * Area;
+							Fnb_dir = Dens0 * vel.y * Area;
+							// aNB							
+							//{
+							//	// Diffusion
+							//	fvm->nb_fvs[nb].fv_coef += PeFunc(abs(Fnb_dir / Dnb_dir)) * Dnb_dir;
+							//	// Convention
+							//	if ((relativ_pos == NB_N) and Fnb_dir < 0) fvm->nb_fvs[nb].fv_coef -= Fnb_dir;
+							//	if ((relativ_pos == NB_S) and Fnb_dir > 0) fvm->nb_fvs[nb].fv_coef += Fnb_dir;
+							//}
+							fvm->nb_fvs[nb].fv_coef += Dnb_dir;
+							//std::cout << "fvm->nb_fvs[nb].fv_coef" << " " << fvm->nb_fvs[nb].fv_coef << "\n"; // —“–¿ÕÕŒ
+						}
+						else if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+							switch (relativ_pos)
+							{
+							case NB_E:
+							case NB_W:
+								// ›ÚÓ ‚ÓÁÏÓÊÌÓ ÚÓÊÂ ÌÂ Ì‡‰Ó
+								vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+								vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+								effD = fvm->El().fv->m_DVisc;
+								boundary_coefs += 1.0 / (1.0 / (effD* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + 1.0 / fvm->nb_fvs[nb].fv->fv_boundary->getVelocityCoefs().y)*Area;
+								break;
+							case NB_N:
+							case NB_S:
+								// œÓÍ‡ ÌÂ ÔÓÌˇÎ Ì‡‰Ó, Ë ÂÒÎË Ì‡‰Ó ÚÓ Í‡Í ÚÓ˜ÌÓ ÔÓÒ˜ËÚ‡¸? ≈ÒÎË ÌÂ„‰Â ÚÓ˜ÌÓ„Ó ‡Ò˜ÂÚ‡ ÌÂÚ, ÚÓ Ì‡‚ÂÌÓÂ ÌÂ Ì‡‰Ó
+								break;
+							default:
+								break;
+							}
+						}
+					}
+					break;
+				default:
+					break;
+				}
+				FP0 = VCor0[fvm->fv.innerid]; // VCor_ed[fvm->El().fv->m_id]
+				FNB0 = VCor0[fvm->nb_fvs[nb].innerid]; // VCor_ed[fvm->nb_fvs[nb].fv->m_id]
+				// sigma*SUM(aNB)
+				fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef * sigma;  // 
+				if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv.fv_coef -= FP0 * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().y * sigma; // *(1 - sigma)
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().y * (1 - sigma);
+				}
+				// ‘P0*(1-sigma)*SUM(aNB)
+				fvm->fv_source -= FP0 * fvm->nb_fvs[nb].fv_coef * (1 - sigma); // *(1 - sigma)
+				// (1-sigma)*SUM(‘NB0 * aNB)
+				fvm->fv_source += FNB0 * fvm->nb_fvs[nb].fv_coef * (1 - sigma); // *(1 - sigma)
+			}
+			// Spm*Vol
+			fvm->fv.fv_coef -= fvm->sf.Spm.val * Volume;
+			// ‘P0*(1-sigma)*Spm0*Vol
+			fvm->fv_source -= FP0 * fvm->sf.Spm.dval * Volume*(1 - sigma);
+			// (1-sigma)*Spp0*Vol
+			fvm->fv_source += fvm->sf.Spp.dval * Volume*(1 - sigma);// *(1 - sigma)
+			// sigma*Spp*Vol
+			fvm->fv_source += fvm->sf.Spp.val * Volume*sigma;// *sigma
+
+			// aP0
+			if (dt == 0) { ap0 = 0.0; }
+			else { ap0 = Dens0 * Volume / dt; }
+			fvm->fv.fv_coef += ap0;
+			// ‘P0*aP0
+			FP0 = VCor0[fvm->fv.innerid]; // VCor_ed[fvm->El().fv->m_id]
+			fvm->fv_source += FP0 * ap0;
+		}
+		std::cout << "PHI_PARAMS::UY\n";
+		Solve(&FVMesh_VyA, &VApr.dval);
+
+
+		std::cout << "UApr.dval: ";
+		// Fn = AlfaF*F + (1-AlfaF)*Fn-1
+		for (int i = 0;i < UApr.val.size();i++) {
+			UApr.dval[i] = AlphaU * UApr.dval[i] + (1 - AlphaU)*UApr.val[i];
+			std::cout << UApr.dval[i] << " ";
+		}
+		std::cout << "\n";
+		std::cout << "VApr.dval: ";
+		for (int i = 0;i < VApr.val.size();i++) { 
+			VApr.dval[i] = AlphaV * VApr.dval[i] + (1 - AlphaV)*VApr.val[i];
+			std::cout << VApr.dval[i] << " ";
+		}
+		std::cout << "\n";
+
+
+		// ap PP' = SUM(anb PNB') + bp* , bp* = -{(Rhop-Rhop0)/dt dVp + SUM(Fnb*)} 
+		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				FVMesh_PC.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::P));
+			}
+		}
+		Dnb_dir = 0.0;
+		Fnb_dir = 0.0;
+
+		// ‘P*SUM(dens*dAnb*dnb) = SUM(‘NB*dens*dAnb*dnb) + (-(aP0 + dens * U*e *dAe - dens * U*w *dAw + dens * U*n *dAn - dens * U*s *dAs)
+		//      +                           +                   +      +                +                  +                 +                                                        
+		for (auto fvm : FVMesh_PC) {
+			fv_prec ap0;
+			fvm->fv.fv_coef = 0.0;
+			Dens0 = fvm->El().fv->m_density.val;
+			fv_prec de = 0.0; fv_prec dw = 0.0; fv_prec dn = 0.0; fv_prec ds = 0.0;
+			fv_prec ue = 0.0; fv_prec uw = 0.0; fv_prec vn = 0.0; fv_prec vs = 0.0;
+			for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+				FV_NB relativ_pos;
+				boundary_coefs = 0.0;
+				fv_prec dens = Dens0;
+				switch (fvm->El().fv->FVdim) {
+				case(FVA_L):
+					break;
+				case(FVA_S):
+					Volume = fvm->El().fv->m_s.size();
+					for (auto fv_p : fvm->El().fv->m_s.m_lineArray) {
+						bool NBIsFound = false;
+						if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+							//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+							if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+								Area = fv_p.size();
+								Area_centre = fv_p.getCentre();
+								if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+								NBIsFound = true;
+							}
+						}
+						else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+							for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+								if (fv_p == fv_nb) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+									//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << fv_nb.m_p1.x << "," << fv_nb.m_p1.y << "},{" << fv_nb.m_p2.x << "," << fv_nb.m_p2.y << "}" << "\n";
+									//std::cout << fvm->fv.fv->m_id << " " <<  fvm->nb_fvs[nb].fv->m_id << " TUT\n";
+									break;
+								}
+							}
+						}
+						if (!NBIsFound) continue;
+						fvm->nb_fvs[nb].innerid = fvm->nb_fvs[nb].fv->m_id;
+						if (relativ_pos == NB_E) {
+							int id = fvm->fv.fv->m_id;
+							if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+								//std::cout << fvm->fv.fv->m_id << "e: " << fvm->nb_fvs[nb].fv->m_id << "\n";
+								ue = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x;
+								de = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id << "e: " << fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size() << "\n";
+								ue = UApr.dval[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()];
+								de = Area / FVMesh_VxA[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_E)->m_density.val;
+								//std::cout << FVMesh_VxA[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()]->fv.fv->m_id << " " << FVMesh_VxA[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens *Area*de;
+						}
+						else if (relativ_pos == NB_W) {
+							if (fvm->fv.fv->m_id % last_x_fvs.size() == 0) {
+								//std::cout << fvm->fv.fv->m_id << "w: " << FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_W)->m_id << "\n";
+								uw = FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+								dw = 0.0;
+							}
+							else {
+								int id = fvm->getPtrToSide(NB_W)->m_id;
+								//std::cout << fvm->fv.fv->m_id << "w: " << id - static_cast<int>(id / (last_x_fvs.size())) << "\n";
+								uw = UApr.dval[id- static_cast<int>(id / (last_x_fvs.size()))];
+								dw = Area / FVMesh_VxA[id- static_cast<int>(id / (last_x_fvs.size()))]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_W)->m_density.val;
+								//std::cout << FVMesh_VxA[id - static_cast<int>(id / (last_x_fvs.size()))]->fv.fv->m_id << " " << FVMesh_VxA[id - static_cast<int>(id / (last_x_fvs.size()))]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens *Area*dw;
+						}
+						else if (relativ_pos == NB_N) {
+							if (fvm->fv.fv->m_id >= VApr.dval.size()) {
+								//std::cout << fvm->fv.fv->m_id << "n: " << FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_N)->m_id << "\n";
+								vn = FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_N)->fv_boundary->getVelocity().y;
+								dn = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id << "n: " << fvm->fv.fv->m_id << "\n";
+								vn = VApr.dval[fvm->fv.fv->m_id];
+								dn = Area / FVMesh_VxA[fvm->fv.fv->m_id]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_N)->m_density.val;
+								//std::cout << FVMesh_VxA[fvm->fv.fv->m_id]->fv.fv->m_id << " " << FVMesh_VxA[fvm->fv.fv->m_id]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens *Area*dn;
+						}
+						else if (relativ_pos == NB_S) {
+							int id = fvm->fv.fv->m_id;
+							if (id < last_y_fvs.size()) {
+								//std::cout << fvm->fv.fv->m_id << "s: " << FVMesh_PC[id]->getPtrToSide(NB_S)->m_id << "\n";
+								vs = FVMesh_PC[id]->getPtrToSide(NB_S)->fv_boundary->getVelocity().y;
+								ds = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id << "s: " << id - last_y_fvs.size() << "\n";
+								vs = VApr.dval[id- last_y_fvs.size()];
+								ds = Area / FVMesh_VxA[id- last_y_fvs.size()]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_S)->m_density.val;
+								//std::cout << FVMesh_VxA[id - last_y_fvs.size()]->fv.fv->m_id << " " << FVMesh_VxA[id - last_y_fvs.size()]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens * Area*ds;
+						}
+					}
+					break;
+				default:
+					break;
+				}
+				//if (relativ_pos == NB_E) { std::cout << "de=" << de << " - " << "ue=" << ue << "\n"; }
+				//else if (relativ_pos == NB_W) { std::cout << "dw=" << dw << " - " << "uw=" << uw << "\n"; }
+				//else if (relativ_pos == NB_N) { std::cout << "dn=" << dn << " - " << "vn=" << vn << "\n"; }
+				//else if (relativ_pos == NB_S) { std::cout << "ds=" << ds << " - " << "vs=" << vs << "\n"; }
+
+				fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef;
+				fvm->fv_source += dens *Area * (uw - ue + vs - vn);
+
+				de = 0.0;  dw = 0.0;  dn = 0.0;  ds = 0.0;
+				ue = 0.0;  uw = 0.0;  vn = 0.0;  vs = 0.0;
+			}
+
+			if (dt == 0) { ap0 = 0.0; }
+			else { ap0 = (Dens - Dens0) * Volume / dt; }
+			fvm->fv_source -= ap0;
+		}
+		std::cout << "PHI_PARAMS::P\n";
+
+
+		sum.val = sum.dval;
+		sum.dval = 0.0;
+		for (auto err : FVMesh_PC) {
+			sum.dval += err->fv_source;
+		}
+		std::cout << "sum.val: " << sum.val << ", sum.dval: " << sum.dval << "\n";
+
+		SolveWithFirstZero(&FVMesh_PC, &Pcor);
+
+		// ue = ue* +de(PP'- PE')
+		std::cout << "UCor_ed: ";
+		for (int i = 0;i < UApr.dval.size();i++) {
+			//int num = i + i / (last_x_fvs.size() - 1);
+			//FVM.FiniteVolumes[num]->m_velocity.dval.x = UApr[i] + FVMesh_VxA[i]->getCoef(FVMesh_VxA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_E)->m_id]);
+			UCor_ed[i] = UApr.dval[i] + FVMesh_VxA[i]->getCoef(FVMesh_VxA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_E)->m_id]);
+			std::cout << UCor_ed[i] << " ";
+			UApr.val[i] = UApr.dval[i];
+		}
+		std::cout << "\n";
+		// vn = vn* +dn(PP'- PN')
+		std::cout << "VCor_ed: ";
+		for (int i = 0;i < VApr.dval.size();i++) {
+			//FVM.FiniteVolumes[i]->m_velocity.dval.y = VApr[i] + FVMesh_VyA[i]->getCoef(FVMesh_VyA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_N)->m_id]);
+			VCor_ed[i] = VApr.dval[i] + FVMesh_VyA[i]->getCoef(FVMesh_VyA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_N)->m_id]);
+			std::cout << VCor_ed[i] << " ";
+			VApr.val[i] = VApr.dval[i];
+		}
+		std::cout << "\n";
+
+
+		//ÒÍÓÓÒÚË
+		std::cout << "\n";
+		std::cout << "Velocity.x: ";
+		for (auto fvm : FVM.FiniteVolumeMesh) {
+			if(fvm->FVPtr()->m_type ==  FINITE_VOLUME_TYPE::FVT_DEFAULT){
+				fv_prec velE = 0.0;
+				fv_prec velW = 0.0;
+				//std::cout << (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				//std::cout << fvm->FVPtr()->m_id << ": ";
+				if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr) {
+					velW = fvm->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+					//std::cout << fvm->getPtrToSide(NB_W)->m_id << " ";
+				}
+				else {
+					velW = UCor_ed[fvm->getPtrToSide(NB_W)->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size())];
+					//std::cout << fvm->getPtrToSide(NB_W)->m_id- (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				}
+				if (fvm->getPtrToSide(NB_E)->fv_boundary != nullptr) { 
+					velE = fvm->getPtrToSide(NB_E)->fv_boundary->getVelocity().x;
+					//std::cout << fvm->getPtrToSide(NB_E)->m_id << " ";
+				}
+				else { 
+					velE = UCor_ed[fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size())];
+					//std::cout << fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				}
+				fvm->FVPtr()->m_velocity.dval.x = 0.5*(velW + velE);
+				//std::cout << "\n";
+				std::cout << fvm->FVPtr()->m_velocity.dval.x << " ";
+			}
+		}
+		std::cout << "\n";
+		std::cout << "Velocity.y: ";
+		for (auto fvm : FVM.FiniteVolumeMesh) {
+			if (fvm->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				fv_prec velN = 0.0;
+				fv_prec velS = 0.0;
+				//std::cout << (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				//std::cout << fvm->FVPtr()->m_id << ": ";
+				if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr) {
+					velS = fvm->getPtrToSide(NB_S)->fv_boundary->getVelocity().y;
+					//std::cout << fvm->getPtrToSide(NB_S)->m_id << " ";
+				}
+				else {
+					velS = VCor_ed[fvm->getPtrToSide(NB_S)->m_id];
+					//std::cout << fvm->getPtrToSide(NB_S)->m_id << " ";
+				}
+				if (fvm->getPtrToSide(NB_N)->fv_boundary != nullptr) { velN = fvm->getPtrToSide(NB_N)->fv_boundary->getVelocity().y;
+					//std::cout << fvm->getPtrToSide(NB_N)->m_id << " ";
+				}
+				else { velN = VCor_ed[fvm->FVPtr()->m_id];
+					//std::cout << fvm->FVPtr()->m_id << " ";
+				}
+				fvm->FVPtr()->m_velocity.dval.y = 0.5*(velS + velN);
+				std::cout << fvm->FVPtr()->m_velocity.dval.y << " ";
+				//std::cout << "\n";
+				//std::cout << velS << " " << velN << "\n";
+			}
+		}
+		std::cout << "\n";
+
+
+		// P = P* + P'
+
+		std::cout << "Pressure: ";
+		for (auto i : FVM.FiniteVolumes) {
+			if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				//i->m_pressure.val = i->m_pressure.dval;
+				i->m_pressure.dval = PApr[i->m_id] + AlphaP * Pcor[i->m_id];
+				std::cout << i->m_pressure.dval << " ";
+			}
+		}
+		std::cout << "\n";
+		std::cout << "_________________________________________________ \n";
+
+		// P* = P
+		for (auto i : FVM.FiniteVolumes) {
+			if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				PApr[i->m_id] = i->m_pressure.dval;
+			}
+		}
+		for (auto i : FVMesh_VxA) { delete i; }
+		FVMesh_VxA.resize(0);
+		for (auto i : FVMesh_VyA) { delete i; }
+		FVMesh_VyA.resize(0);
+		for (auto i : FVMesh_PC) { delete i; }
+		FVMesh_PC.resize(0);
+
+		std::cout << "Err: " << abs(sum.dval - sum.val) << "\n";
+
+	}
+
+
+
+
+	// U0 = U; ÕŒ Õ¿ƒŒ œ≈–≈—“–Œ»“‹ «Õ¿◊≈Õ»ﬂ Œ“ —Ã≈Ÿ≈ÕÕ€’  Œ   ÕŒ–Ã¿À‹Õ€Ã ƒÀﬂ — Œ–Œ—“»
+	// P0 = P
 	for (auto i : FVM.FiniteVolumes) {
 		if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
 			i->m_pressure.val = i->m_pressure.dval;
 			i->m_velocity.val = i->m_velocity.dval;
 		}
 	}
+	*/
+
+	std::cout << "\n";
+}
+
+/*
+void FVM_CD::SIMPLE_ALGO(cd_prec dt) {
+	   
+
+	std::vector<fv_prec> PApr;
+	PApr.resize(FVM.FiniteVolumes.size(), 0.0);
+	std::vector<fv_prec> Pcor;
+	Pcor.resize(FVM.FiniteVolumes.size(), 0.0);
+
+
+	std::vector<Ch_<fv_prec>> Eps;
+	fv_prec sigma = 1.0;
 
 
 
+	fv_prec AlphaP = 0.8;
+	fv_prec AlphaU = 0.5;
+	fv_prec AlphaV = 0.5;
+	fv_prec AlphaW = 0.5;
 
-		sum = 0;
-		for (auto e : Eps) { sum = sum + e; }
+	std::vector<FVMeshNode*> FVMesh_VxA;
+	std::vector<FVMeshNode*> FVMesh_VyA;
+	std::vector<FVMeshNode*> FVMesh_PC;
+
+	Ch_<fv_prec> sum;
+	sum.dval = 10;
+	sum.val = 0;
+	for (auto e : Eps) { sum = sum + e; }
+
+	for (auto i : FVM.FiniteVolumes) {
+		//i->m_pressure.dval = i->m_pressure.val;
+		PApr[i->m_id] = i->m_pressure.val;
+		i->m_pressure.dval = i->m_pressure.val;
+		i->m_velocity.dval = i->m_velocity.val;
+		//  ÕŒ Õ¿ƒŒ œ≈–≈—“–Œ»“‹ «Õ¿◊≈Õ»ﬂ Œ“ ÕŒ–Ã¿À‹Õ€’  Œ   —Ã≈Ÿ≈ÕÕ€Ã ƒÀﬂ — Œ–Œ—“», » “Œ√ƒ¿ ”Ã≈Õ‹ÿ»“‹ –¿«Ã≈–€ UCor_ed, VCor_ed, WCor_ed
+		//  Õ” “Œ√ƒ¿ œŒÃ≈Õﬂ“‹ » –¿«Ã≈–€ UApr, VApr, WApr
 	}
 
+
+	std::vector<int> last_x_fvs;
+	std::vector<int> last_y_fvs;
+	fv_prec max_x = 0.0; fv_prec max_y = 0.0; fv_prec max_z = 0.0;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (max_x < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x) max_x = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x;
+		if (max_y < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y) max_y = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y;
+		if (max_z < FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.z) max_z = FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.z;
+	}
+	max_x = 1.00 - m_options.average_dim_steps.x;
+	max_y = 1.00 - m_options.average_dim_steps.y;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.x >= max_x) { last_x_fvs.push_back(i); }
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_Centre.y >= max_y) { last_y_fvs.push_back(i); }
+		}
+	}
+
+	int num_of_def = 0;
+	for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+		if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			num_of_def++;
+		}
+	}
+
+
+	Ch_<std::vector<fv_prec>> UApr;
+	UApr.val.resize(num_of_def - last_x_fvs.size(), 0.0);
+	UApr.dval.resize(num_of_def - last_x_fvs.size(), 0.0);
+	std::vector<fv_prec> UCor_ed;
+	UCor_ed.resize(num_of_def - last_x_fvs.size(), 0.0);
+	std::vector<fv_prec> UCor0;
+	UCor0.resize(num_of_def - last_x_fvs.size(), 0.0);
+
+	Ch_<std::vector<fv_prec>> VApr;
+	VApr.val.resize(num_of_def - last_y_fvs.size(), 0.0);
+	VApr.dval.resize(num_of_def - last_y_fvs.size(), 0.0);
+	std::vector<fv_prec> VCor_ed;
+	VCor_ed.resize(num_of_def - last_y_fvs.size(), 0.0);
+	std::vector<fv_prec> VCor0;
+	VCor0.resize(num_of_def - last_y_fvs.size(), 0.0);
+
+
+	std::vector<fv_prec> WApr;
+	WApr.resize(FVM.FiniteVolumes.size(), 0.0);
+	std::vector<fv_prec> WCor_ed;
+	WCor_ed.resize(FVM.FiniteVolumes.size(), 0.0);
+
+
+	std::cout << "UCor0[n]: ";
+	int n = 0;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		if (((fvm->FVPtr()->m_id + 1) % last_y_fvs.size() != 0) and (n < num_of_def - last_x_fvs.size())) {
+			UCor0[n] = 0.5*(fvm->FVPtr()->m_velocity.val.x + fvm->getPtrToSide(NB_E)->m_velocity.val.x);
+			UCor_ed[n] = 0.5*(fvm->FVPtr()->m_velocity.dval.x + fvm->getPtrToSide(NB_E)->m_velocity.dval.x);
+			std::cout << UCor0[n] << " ";
+			n++;
+		}
+	}
+	std::cout << "\n";
+
+
+	std::cout << "VCor0[n]: ";
+	n = 0;
+	for (auto fvm : FVM.FiniteVolumeMesh) {
+		if (n < num_of_def - last_y_fvs.size()) {
+			VCor0[n] = 0.5*(fvm->FVPtr()->m_velocity.val.y + fvm->getPtrToSide(NB_N)->m_velocity.val.y);
+			VCor_ed[n] = 0.5*(fvm->FVPtr()->m_velocity.dval.y + fvm->getPtrToSide(NB_N)->m_velocity.dval.y);
+			std::cout << VCor0[n] << " ";
+			n++;
+		}
+	}
+	std::cout << "\n";
+
+	//for (int i = 0; i < VCor0.size();i++) {	std::cout << "{" << UCor_ed[i] << ", " << VCor_ed[i] << "}\n"; }
+
+	//n = 0;
+	//for (auto fvm : FVM.FiniteVolumeMesh) {
+	//	if (n < num_of_def - last_x_fvs.size()) {
+	//		VCor_ed[n] = fvm->FVPtr()->m_velocity.val.x + fvm->getPtrToSide(NB_N)->m_velocity.val.x;
+	//		n++;
+	//	}
+	//}
+
+	std::cout << "Err: " << abs(sum.dval - sum.val) << "\n";
+	while (abs(sum.dval - sum.val) > 0.00001) {
+
+
+		// ae ue* = SUM(anb unb*) + bu + dy(PP*-PE*)
+		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				float skip_flag = false;
+				for (auto x : last_x_fvs) { if (x == i) { skip_flag = true; } }
+				if (skip_flag) { continue; }
+				FVMesh_VxA.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::UX));
+			}
+		}
+		fv_prec effD;
+		fv_prec_3 vec_fv_to_nb;
+		fv_prec_3 vec_fv_to_b;
+		fv_prec_3 vec_b_to_nb;
+		fv_prec Area;
+		fv_prec Volume;
+		fv_prec_3 Area_centre;
+		fv_prec boundary_coefs;
+		fv_prec Dnb_dir = 0.0;
+		fv_prec Fnb_dir = 0.0;
+		fv_prec FP0;
+		fv_prec FNB0;
+		fv_prec Dens = 1000.0;
+		fv_prec Dens0;
+		fv_prec DensNB;
+
+		// ‘P*(aP0 + sigma*SUM(aNB) - Spm*Vol) = SUM(‘NB * aNB) + ‘P0*(aP0 - (1-sigma)*SUM(aNB) - (1-sigma)*Spm0*Vol) + (1-sigma)*SUM(‘NB0 * aNB) + (1-sigma)*Spp0*Vol + sigma*Spp*Vol + dy*(P*P - P*E)
+		//      +          +             +               +              +              +                    +                      +                                                            +            
+		glm::max(0.0, 0.1);
+
+		int main_innerid = 0;
+		for (auto fvm : FVMesh_VxA) {
+			fv_prec ap0;
+			fvm->fv.fv_coef = 0.0;
+			Dens0 = fvm->El().fv->m_density.val;
+			fvm->fv.innerid = main_innerid;
+			//std::cout << fvm->El().fv->m_id << " ";
+			for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+				FV_NB relativ_pos;
+				boundary_coefs = 0.0;
+				fvm->nb_fvs[nb].fv_coef = 0.0;
+
+				switch (fvm->El().fv->FVdim) {
+				case(FVA_L):
+					break;
+				case(FVA_S):
+					Volume = fvm->El().fv->m_s.size();
+					for (auto fv_p : fvm->El().fv->m_s.m_lineArray) {
+						bool NBIsFound = false;
+						if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+							//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+							if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+								Area = fv_p.size();
+								Area_centre = fv_p.getCentre();
+								if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+								NBIsFound = true;
+							}
+						}
+						else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+							for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+								if (fv_p == fv_nb) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+									break;
+								}
+							}
+						}
+						if (!NBIsFound) continue;
+						//std::cout << relativ_pos << "\n";
+						int nb_id = fvm->nb_fvs[nb].fv->m_id;
+						if ((relativ_pos == NB_E) and ((fvm->nb_fvs[nb].fv->m_id + 1) % (last_x_fvs.size()) == 0)) {
+							nb_id = FVM.FiniteVolumeMesh[fvm->nb_fvs[nb].fv->m_id]->getPtrToSide(NB_E)->m_id;
+						}
+
+
+						int innerid;
+						if (fvm->nb_fvs[nb].fv->m_id >= m_options.nrOfFVinDir.x* m_options.nrOfFVinDir.y) {
+							innerid = fvm->nb_fvs[nb].fv->m_id;
+						}
+						else {
+							if ((fvm->nb_fvs[nb].fv->m_Centre.x < max_x)) innerid = fvm->nb_fvs[nb].fv->m_id - fvm->nb_fvs[nb].fv->m_id / last_x_fvs.size();
+							else innerid = FVM.FiniteVolumeMesh[fvm->nb_fvs[nb].fv->m_id - fvm->nb_fvs[nb].fv->m_id / last_x_fvs.size()]->getPtrToSide(NB_E)->m_id;
+						}
+						fvm->nb_fvs[nb].innerid = innerid;
+						//std::cout << innerid << "\n";
+
+						// Pressure
+						// dy*(P*P - P*E)
+						if (relativ_pos == NB_E) {
+							fvm->fv_source += Area * (PApr[fvm->El().fv->m_id] - PApr[fvm->nb_fvs[nb].fv->m_id]);
+							//std::cout << fvm->fv_source << "->";
+						}
+
+						if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+							vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;;
+							vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+
+
+							if (relativ_pos == NB_E) {}
+							if (relativ_pos == NB_W) {}
+							if (relativ_pos == NB_N) {}
+							if (relativ_pos == NB_S) {}
+
+							//;
+
+						}
+
+						if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+							vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;;
+							vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+
+							effD = (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc * fvm->El().fv->m_DVisc) / ((FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + (fvm->El().fv->m_DVisc *vec_mod(vec_b_to_nb) / vec_mod(vec_fv_to_nb)));
+							Dnb_dir = (effD * Area) / vec_mod(vec_fv_to_nb);
+
+							fv_prec_3 vel({ 0.0,0.0,0.0 }); // {UCor_ed[i->m_id],VCor_ed[i->m_id],WCor_ed[i->m_id]}
+							vel.x = 0.5*(UCor_ed[fvm->fv.innerid] + UCor_ed[fvm->nb_fvs[nb].innerid]);
+
+							if (relativ_pos == NB_E) vel.y = FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.y;
+							if (relativ_pos == NB_W) vel.y = fvm->El().fv->m_velocity.dval.y;
+							//›“Œ —ÀŒ∆ÕŒ
+							if (relativ_pos == NB_N) vel.y = 0.25*(fvm->El().fv->m_velocity.dval.y + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.y + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_N)->m_velocity.dval.y + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_N)->m_id]->FVPtr()->m_velocity.dval.y);
+							if (relativ_pos == NB_S) vel.y = 0.25*(fvm->El().fv->m_velocity.dval.y + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.y + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_S)->m_velocity.dval.y + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_S)->m_id]->FVPtr()->m_velocity.dval.y);
+
+
+
+
+							//Fnb_dir = Dens0 * (sqrt(pow(vel.x, 2) + pow(vel.y, 2) + pow(vel.z, 2))) * Area;
+							//Fnb_dir = Dens0 * vel.x * Area;
+							//// aNB							
+							//{
+							//	// Diffusion
+							//	fvm->nb_fvs[nb].fv_coef += PeFunc(abs(Fnb_dir / Dnb_dir)) * Dnb_dir;
+							//	// Convention
+							//	if ((relativ_pos == NB_E) and Fnb_dir < 0) fvm->nb_fvs[nb].fv_coef -= Fnb_dir;
+							//	if ((relativ_pos == NB_W) and Fnb_dir > 0) fvm->nb_fvs[nb].fv_coef += Fnb_dir;
+							//}
+							fvm->nb_fvs[nb].fv_coef += Dnb_dir;
+						}
+						else if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+							switch (relativ_pos)
+							{
+							case NB_E:
+							case NB_W:
+								// œÓÍ‡ ÌÂ ÔÓÌˇÎ Ì‡‰Ó, Ë ÂÒÎË Ì‡‰Ó ÚÓ Í‡Í ÚÓ˜ÌÓ ÔÓÒ˜ËÚ‡¸? ≈ÒÎË ÌÂ„‰Â ÚÓ˜ÌÓ„Ó ‡Ò˜ÂÚ‡ ÌÂÚ, ÚÓ Ì‡‚ÂÌÓÂ ÌÂ Ì‡‰Ó
+								break;
+							case NB_N:
+							case NB_S:
+								// ›ÚÓ ‚ÓÁÏÓÊÌÓ ÚÓÊÂ ÌÂ Ì‡‰Ó
+								vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+								vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+								effD = fvm->El().fv->m_DVisc;
+								boundary_coefs += 1.0 / (1.0 / (effD* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + 1.0 / fvm->nb_fvs[nb].fv->fv_boundary->getVelocityCoefs().x)*Area;
+								//std::cout << "nb.fv->fv_boundary->getVelocityCoefs().x:" << nb.fv->fv_boundary->getVelocityCoefs().x << "\n";
+								break;
+							default:
+								break;
+							}
+
+						}
+					}
+					break;
+				default:
+					break;
+				}
+				FP0 = UCor0[fvm->fv.innerid]; // UCor_ed[fvm->El().fv->m_id]
+				FNB0 = UCor0[fvm->nb_fvs[nb].innerid]; // UCor_ed[fvm->nb_fvs[nb].fv->m_id]
+				// sigma*SUM(aNB)
+				fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef * sigma;  // 
+				if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv.fv_coef -= FP0 * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x * sigma; // *(1 - sigma)
+					//std::cout << fvm->fv_source << "->";
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x * (1.0 - sigma);
+					//std::cout << fvm->fv_source << "->";
+				}
+				// ‘P0*(1-sigma)*SUM(aNB)
+				fvm->fv_source -= FP0 * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+				// (1-sigma)*SUM(‘NB0 * aNB)
+				fvm->fv_source += FNB0 * fvm->nb_fvs[nb].fv_coef * (1.0 - sigma); // *(1 - sigma)
+			}
+
+			// Spm*Vol
+			fvm->fv.fv_coef -= fvm->sf.Spm.val * Volume;
+			// ‘P0*(1-sigma)*Spm0*Vol
+			fvm->fv_source -= FP0 * fvm->sf.Spm.dval * Volume*(1.0 - sigma);
+			// (1-sigma)*Spp0*Vol
+			fvm->fv_source += fvm->sf.Spp.dval * Volume*(1.0 - sigma);// *(1 - sigma)
+			// sigma*Spp*Vol
+			fvm->fv_source += fvm->sf.Spp.val * Volume*sigma;// *sigma
+
+
+			// aP0
+			if (dt == 0) { ap0 = 0.0; }
+			else { ap0 = Dens0 * Volume / dt; }
+			fvm->fv.fv_coef += ap0;
+			// ‘P0*aP0
+			FP0 = UCor0[fvm->fv.innerid]; // UCor_ed[fvm->El().fv->m_id]
+			fvm->fv_source += FP0 * ap0;
+
+			//std::cout <<  "\n";
+			main_innerid++;
+		}
+		std::cout << "PHI_PARAMS::UX\n";
+		Solve(&FVMesh_VxA, &UApr.dval);
+
+		// an vn* = SUM(anb vnb*) + bv + dx(PP*-PN*)
+		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				float skip_flag = false;
+				for (auto y : last_y_fvs) { if (y == i) { skip_flag = true; } }
+				if (skip_flag) { continue; }
+				FVMesh_VyA.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::UY));
+			}
+		}
+		Dnb_dir = 0.0;
+		Fnb_dir = 0.0;
+
+		// ‘P*(aP0 + sigma*SUM(aNB) - Spm*Vol) = SUM(‘NB * aNB) + ‘P0*(aP0 - (1-sigma)*SUM(aNB) - (1-sigma)*Spm0*Vol) + (1-sigma)*SUM(‘NB0 * aNB) + (1-sigma)*Spp0*Vol + sigma*Spp*Vol + dx*(P*P - P*N)
+		//      +          +             +               +              +              +                    +                      +                                                            +            
+		for (auto fvm : FVMesh_VyA) {
+			fv_prec ap0;
+			fvm->fv.fv_coef = 0.0;
+			Dens0 = fvm->El().fv->m_density.val;
+			for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+				FV_NB relativ_pos;
+				boundary_coefs = 0.0;
+				fvm->nb_fvs[nb].fv_coef = 0.0;
+				switch (fvm->El().fv->FVdim) {
+				case(FVA_L):
+					break;
+				case(FVA_S):
+					Volume = fvm->El().fv->m_s.size();
+					for (auto fv_p : fvm->El().fv->m_s.m_lineArray) {
+						bool NBIsFound = false;
+						if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+							//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+							if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+								Area = fv_p.size();
+								Area_centre = fv_p.getCentre();
+								if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+								NBIsFound = true;
+							}
+						}
+						else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+							for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+								if (fv_p == fv_nb) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+									break;
+								}
+							}
+						}
+						if (!NBIsFound) continue;
+						//std::cout << relativ_pos << "\n";
+						//std::cout << VCor_ed.size() << "  " << VCor_ed.size() + last_y_fvs.size() << "\n";
+						int nb_id = fvm->nb_fvs[nb].fv->m_id;
+						if ((relativ_pos == NB_N) and (fvm->El().fv->m_id >= FVMesh_VyA.size())) {
+							nb_id = FVM.FiniteVolumeMesh[fvm->nb_fvs[nb].fv->m_id]->getPtrToSide(NB_N)->m_id;
+						}
+						if ((nb_id >= VCor_ed.size()) and (nb_id < VCor_ed.size() + last_y_fvs.size())) {
+							nb_id = FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_N)->m_id;
+						}
+						//std::cout << " " << fvm->El().fv->m_id << " " << nb_id << " " << relativ_pos  << " "<< "\n"; // —“–¿ÕÕŒ
+
+
+						int innerid = fvm->nb_fvs[nb].fv->m_id;
+						fvm->nb_fvs[nb].innerid = innerid;
+
+
+						// Pressure
+						// dx*(P*P - P*N)
+						if (relativ_pos == NB_N) {
+							//std::cout << fvm->El().fv->m_id <<" - " << fvm->nb_fvs[nb].fv->m_id << "\n";
+							fvm->fv_source += Area * (PApr[fvm->El().fv->m_id] - PApr[fvm->nb_fvs[nb].fv->m_id]);
+						}
+
+						if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+							vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+							vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+							vec_b_to_nb = Area_centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+
+							effD = (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc * fvm->El().fv->m_DVisc) / ((FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_DVisc* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + (fvm->El().fv->m_DVisc *vec_mod(vec_b_to_nb) / vec_mod(vec_fv_to_nb)));
+							Dnb_dir = (effD * Area) / vec_mod(vec_fv_to_nb);
+							fv_prec_3 vel(fvm->El().fv->m_velocity.val); // {UCor_ed[i->m_id],VCor_ed[i->m_id],WCor_ed[i->m_id]}
+							//std::cout << fvm->fv.innerid << " " << fvm->nb_fvs[nb].innerid << "\n";
+							//std::cout << VCor_ed[fvm->fv.innerid] <<", " << VCor_ed[fvm->nb_fvs[nb].innerid] << " ";
+							vel.y = 0.5*(VCor_ed[fvm->fv.innerid] + VCor_ed[fvm->nb_fvs[nb].innerid]);
+							//std::cout << vel.y << "\n";
+
+							if (relativ_pos == NB_N) vel.x = FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.x;
+							if (relativ_pos == NB_S) vel.x = fvm->El().fv->m_velocity.dval.x;
+							//›“Œ —ÀŒ∆ÕŒ
+							if (relativ_pos == NB_E) vel.x = 0.25*(fvm->El().fv->m_velocity.dval.x + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.x + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_E)->m_velocity.dval.x + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_E)->m_id]->FVPtr()->m_velocity.dval.x);
+							if (relativ_pos == NB_W) vel.x = 0.25*(fvm->El().fv->m_velocity.dval.x + FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_velocity.dval.x + FVM.FiniteVolumeMesh[fvm->El().fv->m_id]->getPtrToSide(NB_W)->m_velocity.dval.x + FVM.FiniteVolumeMesh[FVM.FiniteVolumeMesh[nb_id]->getPtrToSide(NB_W)->m_id]->FVPtr()->m_velocity.dval.x);
+
+							//Fnb_dir = Dens0 * (sqrt(pow(vel.x, 2) + pow(vel.y, 2) + pow(vel.z, 2))) * Area;
+							Fnb_dir = Dens0 * vel.y * Area;
+							// aNB							
+							//{
+							//	// Diffusion
+							//	fvm->nb_fvs[nb].fv_coef += PeFunc(abs(Fnb_dir / Dnb_dir)) * Dnb_dir;
+							//	// Convention
+							//	if ((relativ_pos == NB_N) and Fnb_dir < 0) fvm->nb_fvs[nb].fv_coef -= Fnb_dir;
+							//	if ((relativ_pos == NB_S) and Fnb_dir > 0) fvm->nb_fvs[nb].fv_coef += Fnb_dir;
+							//}
+							fvm->nb_fvs[nb].fv_coef += Dnb_dir;
+							//std::cout << "fvm->nb_fvs[nb].fv_coef" << " " << fvm->nb_fvs[nb].fv_coef << "\n"; // —“–¿ÕÕŒ
+						}
+						else if (FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+							switch (relativ_pos)
+							{
+							case NB_E:
+							case NB_W:
+								// ›ÚÓ ‚ÓÁÏÓÊÌÓ ÚÓÊÂ ÌÂ Ì‡‰Ó
+								vec_fv_to_nb = fvm->El().fv->m_Centre - FVM.FiniteVolumeMesh[nb_id]->FVPtr()->m_Centre;
+								vec_fv_to_b = fvm->El().fv->m_Centre - Area_centre;
+								effD = fvm->El().fv->m_DVisc;
+								boundary_coefs += 1.0 / (1.0 / (effD* vec_mod(vec_fv_to_b) / vec_mod(vec_fv_to_nb)) + 1.0 / fvm->nb_fvs[nb].fv->fv_boundary->getVelocityCoefs().y)*Area;
+								break;
+							case NB_N:
+							case NB_S:
+								// œÓÍ‡ ÌÂ ÔÓÌˇÎ Ì‡‰Ó, Ë ÂÒÎË Ì‡‰Ó ÚÓ Í‡Í ÚÓ˜ÌÓ ÔÓÒ˜ËÚ‡¸? ≈ÒÎË ÌÂ„‰Â ÚÓ˜ÌÓ„Ó ‡Ò˜ÂÚ‡ ÌÂÚ, ÚÓ Ì‡‚ÂÌÓÂ ÌÂ Ì‡‰Ó
+								break;
+							default:
+								break;
+							}
+						}
+					}
+					break;
+				default:
+					break;
+				}
+				FP0 = VCor0[fvm->fv.innerid]; // VCor_ed[fvm->El().fv->m_id]
+				FNB0 = VCor0[fvm->nb_fvs[nb].innerid]; // VCor_ed[fvm->nb_fvs[nb].fv->m_id]
+				// sigma*SUM(aNB)
+				fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef * sigma;  // 
+				if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+					fvm->fv.fv_coef += boundary_coefs * sigma;
+					fvm->fv.fv_coef -= FP0 * boundary_coefs * (1.0 - sigma);
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().y * sigma; // *(1 - sigma)
+					fvm->fv_source += boundary_coefs * fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().y * (1 - sigma);
+				}
+				// ‘P0*(1-sigma)*SUM(aNB)
+				fvm->fv_source -= FP0 * fvm->nb_fvs[nb].fv_coef * (1 - sigma); // *(1 - sigma)
+				// (1-sigma)*SUM(‘NB0 * aNB)
+				fvm->fv_source += FNB0 * fvm->nb_fvs[nb].fv_coef * (1 - sigma); // *(1 - sigma)
+			}
+			// Spm*Vol
+			fvm->fv.fv_coef -= fvm->sf.Spm.val * Volume;
+			// ‘P0*(1-sigma)*Spm0*Vol
+			fvm->fv_source -= FP0 * fvm->sf.Spm.dval * Volume*(1 - sigma);
+			// (1-sigma)*Spp0*Vol
+			fvm->fv_source += fvm->sf.Spp.dval * Volume*(1 - sigma);// *(1 - sigma)
+			// sigma*Spp*Vol
+			fvm->fv_source += fvm->sf.Spp.val * Volume*sigma;// *sigma
+
+			// aP0
+			if (dt == 0) { ap0 = 0.0; }
+			else { ap0 = Dens0 * Volume / dt; }
+			fvm->fv.fv_coef += ap0;
+			// ‘P0*aP0
+			FP0 = VCor0[fvm->fv.innerid]; // VCor_ed[fvm->El().fv->m_id]
+			fvm->fv_source += FP0 * ap0;
+		}
+		std::cout << "PHI_PARAMS::UY\n";
+		Solve(&FVMesh_VyA, &VApr.dval);
+
+
+		std::cout << "UApr.dval: ";
+		// Fn = AlfaF*F + (1-AlfaF)*Fn-1
+		for (int i = 0;i < UApr.val.size();i++) {
+			UApr.dval[i] = AlphaU * UApr.dval[i] + (1 - AlphaU)*UApr.val[i];
+			std::cout << UApr.dval[i] << " ";
+		}
+		std::cout << "\n";
+		std::cout << "VApr.dval: ";
+		for (int i = 0;i < VApr.val.size();i++) {
+			VApr.dval[i] = AlphaV * VApr.dval[i] + (1 - AlphaV)*VApr.val[i];
+			std::cout << VApr.dval[i] << " ";
+		}
+		std::cout << "\n";
+
+
+		// ap PP' = SUM(anb PNB') + bp* , bp* = -{(Rhop-Rhop0)/dt dVp + SUM(Fnb*)} 
+		for (int i = 0;i < FVM.FiniteVolumeMesh.size();i++) {
+			if (FVM.FiniteVolumeMesh[i]->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				FVMesh_PC.push_back(new FVMeshNode(*(FVM.FiniteVolumeMesh[i]), PHI_PARAMS::P));
+			}
+		}
+		Dnb_dir = 0.0;
+		Fnb_dir = 0.0;
+
+		// ‘P*SUM(dens*dAnb*dnb) = SUM(‘NB*dens*dAnb*dnb) + (-(aP0 + dens * U*e *dAe - dens * U*w *dAw + dens * U*n *dAn - dens * U*s *dAs)
+		//      +                           +                   +      +                +                  +                 +                                                        
+		for (auto fvm : FVMesh_PC) {
+			fv_prec ap0;
+			fvm->fv.fv_coef = 0.0;
+			Dens0 = fvm->El().fv->m_density.val;
+			fv_prec de = 0.0; fv_prec dw = 0.0; fv_prec dn = 0.0; fv_prec ds = 0.0;
+			fv_prec ue = 0.0; fv_prec uw = 0.0; fv_prec vn = 0.0; fv_prec vs = 0.0;
+			for (int nb = 0;nb < fvm->nb_fvs.size();nb++) {
+				FV_NB relativ_pos;
+				boundary_coefs = 0.0;
+				fv_prec dens = Dens0;
+				switch (fvm->El().fv->FVdim) {
+				case(FVA_L):
+					break;
+				case(FVA_S):
+					Volume = fvm->El().fv->m_s.size();
+					for (auto fv_p : fvm->El().fv->m_s.m_lineArray) {
+						bool NBIsFound = false;
+						if (fvm->nb_fvs[nb].fv->FVdim == FVA_L) {
+							//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << nb.fv->m_l.m_p1.x << "," << nb.fv->m_l.m_p1.y << "},{" << nb.fv->m_l.m_p2.x << "," << nb.fv->m_l.m_p2.y << "}" << nb.fv->m_type << "\n";
+							if (fv_p == fvm->nb_fvs[nb].fv->m_l) {
+								Area = fv_p.size();
+								Area_centre = fv_p.getCentre();
+								if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+								if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+								if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+								if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+								NBIsFound = true;
+							}
+						}
+						else if (fvm->nb_fvs[nb].fv->FVdim == FVA_S) {
+							for (auto fv_nb : fvm->nb_fvs[nb].fv->m_s.m_lineArray) {
+								if (fv_p == fv_nb) {
+									Area = fv_p.size();
+									Area_centre = fv_p.getCentre();
+									if (Area_centre.x > fvm->El().fv->m_Centre.x) relativ_pos = NB_E;
+									if (Area_centre.x < fvm->El().fv->m_Centre.x) relativ_pos = NB_W;
+									if (Area_centre.y > fvm->El().fv->m_Centre.y) relativ_pos = NB_N;
+									if (Area_centre.y < fvm->El().fv->m_Centre.y) relativ_pos = NB_S;
+									NBIsFound = true;
+									//std::cout << "{" << fv_p.m_p1.x << "," << fv_p.m_p1.y << "},{" << fv_p.m_p2.x << "," << fv_p.m_p2.y << "}-{" << fv_nb.m_p1.x << "," << fv_nb.m_p1.y << "},{" << fv_nb.m_p2.x << "," << fv_nb.m_p2.y << "}" << "\n";
+									//std::cout << fvm->fv.fv->m_id << " " <<  fvm->nb_fvs[nb].fv->m_id << " TUT\n";
+									break;
+								}
+							}
+						}
+						if (!NBIsFound) continue;
+						fvm->nb_fvs[nb].innerid = fvm->nb_fvs[nb].fv->m_id;
+						if (relativ_pos == NB_E) {
+							int id = fvm->fv.fv->m_id;
+							if (fvm->nb_fvs[nb].fv->m_type == FINITE_VOLUME_TYPE::FVT_BOUNDARY) {
+								//std::cout << fvm->fv.fv->m_id << "e: " << fvm->nb_fvs[nb].fv->m_id << "\n";
+								ue = fvm->nb_fvs[nb].fv->fv_boundary->getVelocity().x;
+								de = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id << "e: " << fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size() << "\n";
+								ue = UApr.dval[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()];
+								de = Area / FVMesh_VxA[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_E)->m_density.val;
+								//std::cout << FVMesh_VxA[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()]->fv.fv->m_id << " " << FVMesh_VxA[fvm->getPtrToSide(NB_E)->m_id - 1 - id / last_x_fvs.size()]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens * Area*de;
+						}
+						else if (relativ_pos == NB_W) {
+							if (fvm->fv.fv->m_id % last_x_fvs.size() == 0) {
+								//std::cout << fvm->fv.fv->m_id << "w: " << FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_W)->m_id << "\n";
+								uw = FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+								dw = 0.0;
+							}
+							else {
+								int id = fvm->getPtrToSide(NB_W)->m_id;
+								//std::cout << fvm->fv.fv->m_id << "w: " << id - static_cast<int>(id / (last_x_fvs.size())) << "\n";
+								uw = UApr.dval[id - static_cast<int>(id / (last_x_fvs.size()))];
+								dw = Area / FVMesh_VxA[id - static_cast<int>(id / (last_x_fvs.size()))]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_W)->m_density.val;
+								//std::cout << FVMesh_VxA[id - static_cast<int>(id / (last_x_fvs.size()))]->fv.fv->m_id << " " << FVMesh_VxA[id - static_cast<int>(id / (last_x_fvs.size()))]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens * Area*dw;
+						}
+						else if (relativ_pos == NB_N) {
+							if (fvm->fv.fv->m_id >= VApr.dval.size()) {
+								//std::cout << fvm->fv.fv->m_id << "n: " << FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_N)->m_id << "\n";
+								vn = FVMesh_PC[fvm->fv.fv->m_id]->getPtrToSide(NB_N)->fv_boundary->getVelocity().y;
+								dn = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id << "n: " << fvm->fv.fv->m_id << "\n";
+								vn = VApr.dval[fvm->fv.fv->m_id];
+								dn = Area / FVMesh_VxA[fvm->fv.fv->m_id]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_N)->m_density.val;
+								//std::cout << FVMesh_VxA[fvm->fv.fv->m_id]->fv.fv->m_id << " " << FVMesh_VxA[fvm->fv.fv->m_id]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens * Area*dn;
+						}
+						else if (relativ_pos == NB_S) {
+							int id = fvm->fv.fv->m_id;
+							if (id < last_y_fvs.size()) {
+								//std::cout << fvm->fv.fv->m_id << "s: " << FVMesh_PC[id]->getPtrToSide(NB_S)->m_id << "\n";
+								vs = FVMesh_PC[id]->getPtrToSide(NB_S)->fv_boundary->getVelocity().y;
+								ds = 0.0;
+							}
+							else {
+								//std::cout << fvm->fv.fv->m_id << "s: " << id - last_y_fvs.size() << "\n";
+								vs = VApr.dval[id - last_y_fvs.size()];
+								ds = Area / FVMesh_VxA[id - last_y_fvs.size()]->fv.fv_coef;
+								DensNB = fvm->getPtrToSide(NB_S)->m_density.val;
+								//std::cout << FVMesh_VxA[id - last_y_fvs.size()]->fv.fv->m_id << " " << FVMesh_VxA[id - last_y_fvs.size()]->fv.fv_coef << "\n";
+							}
+							dens = 0.5*(Dens0 + DensNB);
+							fvm->nb_fvs[nb].fv_coef = dens * Area*ds;
+						}
+					}
+					break;
+				default:
+					break;
+				}
+				//if (relativ_pos == NB_E) { std::cout << "de=" << de << " - " << "ue=" << ue << "\n"; }
+				//else if (relativ_pos == NB_W) { std::cout << "dw=" << dw << " - " << "uw=" << uw << "\n"; }
+				//else if (relativ_pos == NB_N) { std::cout << "dn=" << dn << " - " << "vn=" << vn << "\n"; }
+				//else if (relativ_pos == NB_S) { std::cout << "ds=" << ds << " - " << "vs=" << vs << "\n"; }
+
+				fvm->fv.fv_coef += fvm->nb_fvs[nb].fv_coef;
+				fvm->fv_source += dens * Area * (uw - ue + vs - vn);
+
+				de = 0.0;  dw = 0.0;  dn = 0.0;  ds = 0.0;
+				ue = 0.0;  uw = 0.0;  vn = 0.0;  vs = 0.0;
+			}
+
+			if (dt == 0) { ap0 = 0.0; }
+			else { ap0 = (Dens - Dens0) * Volume / dt; }
+			fvm->fv_source -= ap0;
+		}
+		std::cout << "PHI_PARAMS::P\n";
+
+
+		sum.val = sum.dval;
+		sum.dval = 0.0;
+		for (auto err : FVMesh_PC) {
+			sum.dval += err->fv_source;
+		}
+		std::cout << "sum.val: " << sum.val << ", sum.dval: " << sum.dval << "\n";
+
+		SolveWithFirstZero(&FVMesh_PC, &Pcor);
+
+		// ue = ue* +de(PP'- PE')
+		std::cout << "UCor_ed: ";
+		for (int i = 0;i < UApr.dval.size();i++) {
+			//int num = i + i / (last_x_fvs.size() - 1);
+			//FVM.FiniteVolumes[num]->m_velocity.dval.x = UApr[i] + FVMesh_VxA[i]->getCoef(FVMesh_VxA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_E)->m_id]);
+			UCor_ed[i] = UApr.dval[i] + FVMesh_VxA[i]->getCoef(FVMesh_VxA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_E)->m_id]);
+			std::cout << UCor_ed[i] << " ";
+			UApr.val[i] = UApr.dval[i];
+		}
+		std::cout << "\n";
+		// vn = vn* +dn(PP'- PN')
+		std::cout << "VCor_ed: ";
+		for (int i = 0;i < VApr.dval.size();i++) {
+			//FVM.FiniteVolumes[i]->m_velocity.dval.y = VApr[i] + FVMesh_VyA[i]->getCoef(FVMesh_VyA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_N)->m_id]);
+			VCor_ed[i] = VApr.dval[i] + FVMesh_VyA[i]->getCoef(FVMesh_VyA[i]->fv.fv) * (Pcor[i] - Pcor[FVMesh_VyA[i]->getPtrToSide(NB_N)->m_id]);
+			std::cout << VCor_ed[i] << " ";
+			VApr.val[i] = VApr.dval[i];
+		}
+		std::cout << "\n";
+
+
+		//ÒÍÓÓÒÚË
+		std::cout << "\n";
+		std::cout << "Velocity.x: ";
+		for (auto fvm : FVM.FiniteVolumeMesh) {
+			if (fvm->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				fv_prec velE = 0.0;
+				fv_prec velW = 0.0;
+				//std::cout << (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				//std::cout << fvm->FVPtr()->m_id << ": ";
+				if (fvm->getPtrToSide(NB_W)->fv_boundary != nullptr) {
+					velW = fvm->getPtrToSide(NB_W)->fv_boundary->getVelocity().x;
+					//std::cout << fvm->getPtrToSide(NB_W)->m_id << " ";
+				}
+				else {
+					velW = UCor_ed[fvm->getPtrToSide(NB_W)->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size())];
+					//std::cout << fvm->getPtrToSide(NB_W)->m_id- (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				}
+				if (fvm->getPtrToSide(NB_E)->fv_boundary != nullptr) {
+					velE = fvm->getPtrToSide(NB_E)->fv_boundary->getVelocity().x;
+					//std::cout << fvm->getPtrToSide(NB_E)->m_id << " ";
+				}
+				else {
+					velE = UCor_ed[fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size())];
+					//std::cout << fvm->FVPtr()->m_id - (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				}
+				fvm->FVPtr()->m_velocity.dval.x = 0.5*(velW + velE);
+				//std::cout << "\n";
+				std::cout << fvm->FVPtr()->m_velocity.dval.x << " ";
+			}
+		}
+		std::cout << "\n";
+		std::cout << "Velocity.y: ";
+		for (auto fvm : FVM.FiniteVolumeMesh) {
+			if (fvm->FVPtr()->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				fv_prec velN = 0.0;
+				fv_prec velS = 0.0;
+				//std::cout << (fvm->FVPtr()->m_id) / (last_x_fvs.size()) << " ";
+				//std::cout << fvm->FVPtr()->m_id << ": ";
+				if (fvm->getPtrToSide(NB_S)->fv_boundary != nullptr) {
+					velS = fvm->getPtrToSide(NB_S)->fv_boundary->getVelocity().y;
+					//std::cout << fvm->getPtrToSide(NB_S)->m_id << " ";
+				}
+				else {
+					velS = VCor_ed[fvm->getPtrToSide(NB_S)->m_id];
+					//std::cout << fvm->getPtrToSide(NB_S)->m_id << " ";
+				}
+				if (fvm->getPtrToSide(NB_N)->fv_boundary != nullptr) {
+					velN = fvm->getPtrToSide(NB_N)->fv_boundary->getVelocity().y;
+					//std::cout << fvm->getPtrToSide(NB_N)->m_id << " ";
+				}
+				else {
+					velN = VCor_ed[fvm->FVPtr()->m_id];
+					//std::cout << fvm->FVPtr()->m_id << " ";
+				}
+				fvm->FVPtr()->m_velocity.dval.y = 0.5*(velS + velN);
+				std::cout << fvm->FVPtr()->m_velocity.dval.y << " ";
+				//std::cout << "\n";
+				//std::cout << velS << " " << velN << "\n";
+			}
+		}
+		std::cout << "\n";
+
+
+		// P = P* + P'
+
+		std::cout << "Pressure: ";
+		for (auto i : FVM.FiniteVolumes) {
+			if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				//i->m_pressure.val = i->m_pressure.dval;
+				i->m_pressure.dval = PApr[i->m_id] + AlphaP * Pcor[i->m_id];
+				std::cout << i->m_pressure.dval << " ";
+			}
+		}
+		std::cout << "\n";
+		std::cout << "_________________________________________________ \n";
+
+		// P* = P
+		for (auto i : FVM.FiniteVolumes) {
+			if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+				PApr[i->m_id] = i->m_pressure.dval;
+			}
+		}
+		for (auto i : FVMesh_VxA) { delete i; }
+		FVMesh_VxA.resize(0);
+		for (auto i : FVMesh_VyA) { delete i; }
+		FVMesh_VyA.resize(0);
+		for (auto i : FVMesh_PC) { delete i; }
+		FVMesh_PC.resize(0);
+
+		std::cout << "Err: " << abs(sum.dval - sum.val) << "\n";
+
+	}
+
+
+
+
+	// U0 = U; ÕŒ Õ¿ƒŒ œ≈–≈—“–Œ»“‹ «Õ¿◊≈Õ»ﬂ Œ“ —Ã≈Ÿ≈ÕÕ€’  Œ   ÕŒ–Ã¿À‹Õ€Ã ƒÀﬂ — Œ–Œ—“»
+	// P0 = P
+	for (auto i : FVM.FiniteVolumes) {
+		if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
+			i->m_pressure.val = i->m_pressure.dval;
+			i->m_velocity.val = i->m_velocity.dval;
+		}
+	}
 }
+*/
 
 
 void FVM_CD::timeUpdate(cd_prec dt){
@@ -955,6 +4299,11 @@ void FVM_CD::timeUpdate(cd_prec dt){
 		if (computationalDomain_mode == MODE_CD::CD_DEBUG) {
 			std::cout << "SPH_CD::timeIntegration\n";
 		}
+
+
+		SIMPLE_ALGO(0.0);
+
+		/*
 		// We know P* field
 		std::vector<fv_prec> PApr;
 		PApr.resize(FVM.FiniteVolumes.size(), 0.0);
@@ -1014,17 +4363,17 @@ void FVM_CD::timeUpdate(cd_prec dt){
 					}
 					std::cout << "PHI_PARAMS::P\n";
 					Solve(&FVMesh_PC, &Pcor);
-					/*
-					// ue = ue* +de(PP'- PE')
-					for (auto i : FVM.FiniteVolumes) {
-						i->m_velocity.dval.x = VelApr[i->m_id].x + de * (Pcor[i->m_id] - Pcor[FVM.FiniteVolumeMesh[i->m_id].E]);
-					}
-
-					// vn = vn* +dn(PP'- PN')
-					for (auto i : FVM.FiniteVolumes) {
-						i->m_velocity.dval.y = VelApr[i->m_id].y + dn * (Pcor[i->m_id] - Pcor[FVM.FiniteVolumeMesh[i->m_id].N]);
-					}
-					*/
+					
+					//// ue = ue* +de(PP'- PE')
+					//for (auto i : FVM.FiniteVolumes) {
+					//	i->m_velocity.dval.x = VelApr[i->m_id].x + de * (Pcor[i->m_id] - Pcor[FVM.FiniteVolumeMesh[i->m_id].E]);
+					//}
+					//
+					//// vn = vn* +dn(PP'- PN')
+					//for (auto i : FVM.FiniteVolumes) {
+					//	i->m_velocity.dval.y = VelApr[i->m_id].y + dn * (Pcor[i->m_id] - Pcor[FVM.FiniteVolumeMesh[i->m_id].N]);
+					//}
+					
 					// P = P* + P'
 					for (auto i : FVM.FiniteVolumes) {
 						if (i->m_type == FINITE_VOLUME_TYPE::FVT_DEFAULT) {
@@ -1061,27 +4410,9 @@ void FVM_CD::timeUpdate(cd_prec dt){
 		else {
 
 		}
+	*/
 
 
-
-
-		/*
-		switch (m_options.timeIntegrationScheme) {
-		case(EXPLICIT):
-			////œÓÎÌÓÒÚ¸˛ ˇ‚Ì‡ˇ ÒıÂÏ‡
-		break;
-		case(IMPLICIT):
-			////œÓÎÌÓÒÚ¸˛ ÌÂˇ‚Ì‡ˇ ÒıÂÏ‡
-		break;
-		case(SEMI_IMPICIT):
-			////œÓÎÛÌÂˇ‚Ì‡ˇ ÒıÂÏ‡
-		break;
-		case(NONE):
-			break;
-		default:
-			break;
-		}
-		*/
 
 	}
 	else {

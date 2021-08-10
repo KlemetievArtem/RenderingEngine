@@ -37,9 +37,19 @@ struct Line {
 		else return false;
 	}
 
+
+	inline fv_prec loc_mod(fv_prec_3 vec) {
+		return (sqrt(pow(vec.x, 2) + pow(vec.y, 2) + pow(vec.z, 2)));
+	}
+
 	friend bool operator==(const Line& l1, const Line& l2) {
-		if (((l1.m_p1 == l2.m_p1) and (l1.m_p2 == l2.m_p2)) or
-			((l1.m_p1 == l2.m_p2) and (l1.m_p2 == l2.m_p1))) {
+		fv_prec Err = 1E-05;
+		fv_prec diff1 = sqrt(pow((l1.m_p1 - l2.m_p1).x, 2) + pow((l1.m_p1 - l2.m_p1).y, 2) + pow((l1.m_p1 - l2.m_p1).z, 2));
+		fv_prec diff2 = sqrt(pow((l1.m_p2 - l2.m_p2).x, 2) + pow((l1.m_p2 - l2.m_p2).y, 2) + pow((l1.m_p2 - l2.m_p2).z, 2));
+		fv_prec diff3 = sqrt(pow((l1.m_p1 - l2.m_p2).x, 2) + pow((l1.m_p1 - l2.m_p2).y, 2) + pow((l1.m_p1 - l2.m_p2).z, 2));
+		fv_prec diff4 = sqrt(pow((l1.m_p2 - l2.m_p1).x, 2) + pow((l1.m_p2 - l2.m_p1).y, 2) + pow((l1.m_p1 - l2.m_p1).z, 2));
+		if (((diff1 < Err) and (diff2 < Err)) or
+			((diff3 < Err) and (diff4 < Err))) {
 			return true;
 		}
 		else return false;
@@ -82,8 +92,7 @@ struct Surface {
 	}
 
 	bool ConnectedWith(Surface& s) {
-		int a_size = this->m_lineArray.size();
-		for (int i = 0;i < a_size;i++) {
+		for (int i = 0;i < this->m_lineArray.size();i++) {
 			for (int ii = 0;ii < s.m_lineArray.size();ii++) {
 				//std::cout <<"{"<< this->m_lineArray[i].m_p1.x << "," <<this->m_lineArray[i].m_p1.y  << "}, {" << this->m_lineArray[i].m_p2.x <<","<< this->m_lineArray[i].m_p2.y << "} and {" << s.m_lineArray[ii].m_p1.x <<"," << s.m_lineArray[ii].m_p1.y << "}, {" << s.m_lineArray[ii].m_p2.x<<"," << s.m_lineArray[ii].m_p2.y << "} " << (this->m_lineArray[i] == s.m_lineArray[ii]) <<"\n";
 				if (this->m_lineArray[i] == s.m_lineArray[ii]) return true;
@@ -193,7 +202,8 @@ enum FINITE_VOLUME_DIM {
 
 enum FINITE_VOLUME_TYPE {
 	FVT_DEFAULT,
-	FVT_BOUNDARY
+	FVT_BOUNDARY,
+	FVT_ALL
 };
 
 class FiniteVolume {
@@ -221,7 +231,7 @@ public:
 	fv_prec m_SoundVelocity;
 	fv_prec m_Temperature = 357.0;
 	fv_prec m_DVisc;
-	void setDVisc() { m_DVisc = 1000E-06; }
+	void setDVisc() { m_DVisc = 1.0E-03; }
 
 	fv_prec m_gamma;
 	fv_prec_3 m_grad_gamma;
@@ -240,6 +250,7 @@ public:
 		m_Centre = m_v.getCentre();
 		m_velocity.val = vel; m_velocity.dval = fv_prec_3(0.0);
 		m_pressure.val = pressure; m_pressure.dval = fv_prec(0.0);
+		m_density.val = 1000.0;
 		//if (m_type == PARTICLETYPE::REAL){
 		//} else { p_gas(); }
 		setDVisc();
@@ -252,6 +263,7 @@ public:
 		m_Centre = m_s.getCentre();
 		m_velocity.val = vel; m_velocity.dval = fv_prec_3(0.0);
 		m_pressure.val = pressure; m_pressure.dval = fv_prec(0.0);
+		m_density.val = 1000.0;
 		//if (m_type == PARTICLETYPE::REAL){
 		//} else { p_gas(); }
 		setDVisc();
@@ -263,6 +275,7 @@ public:
 		m_Centre = m_l.getCentre();
 		m_velocity.val = vel; m_velocity.dval = fv_prec_3(0.0);
 		m_pressure.val = pressure; m_pressure.dval = fv_prec(0.0);
+		m_density.val = 1000.0;
 		//if (m_type == PARTICLETYPE::REAL){
 		//} else { p_gas(); }
 		setDVisc();
@@ -273,7 +286,10 @@ public:
 	BoundaryBase* fv_boundary;
 	void assignToBoundary(BoundaryBase* cd_boundary) { fv_boundary = cd_boundary; }
 
-
+	fv_prec distance(FiniteVolume* fv_nb) {
+		fv_prec_3 diff = m_Centre - fv_nb->m_Centre;
+		return sqrt(pow(diff.x, 2) + pow(diff.y, 2) + pow(diff.z, 2));
+	}
 
 	~FiniteVolume() {
 		//VirtualCounterpartNormals.resize(0);
